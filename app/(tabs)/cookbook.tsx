@@ -1,40 +1,63 @@
-import { Text, View } from 'react-native';
-import styled from 'styled-components/native';
+import { Text, View, StyleSheet } from 'react-native';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { Paywall } from '@/components/premium/Paywall';
+import { useTheme } from '@/theme/ThemeProvider';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
-const Container = styled(View)`
-  flex: 1;
-  background-color: ${({ theme }) => theme.colors.background};
-`;
+type Colors = {
+  background: string;
+  card: string;
+  primary: string;
+  accent: string;
+  text: string;
+  muted: string;
+  error: string;
+  border: string;
+};
 
-const Title = styled(Text)`
-  font-size: ${({ theme }) => theme.fontSizes.xl}px;
-  color: ${({ theme }) => theme.colors.text};
-  font-weight: bold;
-  padding: 20px;
-  padding-top: 60px;
-`;
-
-const ContentContainer = styled(View)`
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-`;
+const createStyles = (colors: Colors) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  title: {
+    fontSize: 32,
+    color: colors.text,
+    fontWeight: 'bold',
+    padding: 20,
+    paddingTop: 60,
+  },
+  contentContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeholderText: {
+    fontSize: 16,
+    color: colors.muted,
+  },
+});
 
 export default function CookbookScreen() {
   const { isPremium } = usePremiumStatus();
+  const theme = useTheme();
+  if (!theme) return null;
+  const { colors } = theme;
+  const styles = createStyles(colors);
 
   if (!isPremium) {
     return <Paywall />;
   }
 
   return (
-    <Container>
-      <Title>My Cookbook</Title>
-      <ContentContainer>
-        <Text>Saved recipes will appear here.</Text>
-      </ContentContainer>
-    </Container>
+    <Animated.View 
+      style={styles.container}
+      entering={FadeIn.duration(300)}
+    >
+      <Text style={styles.title}>My Cookbook</Text>
+      <View style={styles.contentContainer}>
+        <Text style={styles.placeholderText}>Saved recipes will appear here.</Text>
+      </View>
+    </Animated.View>
   );
 }

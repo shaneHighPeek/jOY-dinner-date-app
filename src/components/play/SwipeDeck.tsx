@@ -1,14 +1,40 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet, ViewStyle } from 'react-native';
+import { useTheme } from '@/theme/ThemeProvider';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'expo-router';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
-import { foodItems as initialFoodItems } from '@/constants/foodItems';
+import { foodItems as initialFoodItems } from '@/data';
 import { SwipeableCard } from '@/components/onboarding/SwipeableCard';
 
+type Colors = {
+  background: string;
+  card: string;
+  primary: string;
+  accent: string;
+  text: string;
+  muted: string;
+  error: string;
+  border: string;
+};
+
+const createStyles = (colors: Colors) => StyleSheet.create({
+  container: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
+
 export const SwipeDeck = () => {
+  const theme = useTheme();
+  if (!theme) throw new Error('SwipeDeck must be used within a ThemeProvider');
+  const { colors } = theme;
+  const styles = createStyles(colors);
   const { user } = useAuth();
   const { userData } = useUser();
   const router = useRouter();
@@ -51,7 +77,10 @@ export const SwipeDeck = () => {
   };
 
   return (
-    <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+    <Animated.View 
+      style={styles.container}
+      entering={FadeIn.duration(300)}
+    >
       {foodItems.map((item, index) => (
         <SwipeableCard
           key={item.id}
@@ -60,7 +89,7 @@ export const SwipeDeck = () => {
           index={index}
         />
       )).reverse()}
-    </View>
+    </Animated.View>
   );
 };
 

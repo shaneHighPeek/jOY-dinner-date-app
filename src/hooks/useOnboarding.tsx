@@ -5,10 +5,12 @@ interface OnboardingContextType {
   avatar: string;
   vibe: string;
   cuisinePreferences: string[];
+  onboardingComplete: boolean;
   setName: (name: string) => void;
   setAvatar: (avatar: string) => void;
   setVibe: (vibe: string) => void;
   addCuisinePreference: (cuisine: string) => void;
+  setOnboardingComplete: (isComplete: boolean) => void;
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
@@ -18,6 +20,7 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
   const [avatar, setAvatar] = useState('😊');
   const [vibe, setVibe] = useState('');
   const [cuisinePreferences, setCuisinePreferences] = useState<string[]>([]);
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
 
   const addCuisinePreference = (cuisine: string) => {
     setCuisinePreferences(prev => [...prev, cuisine]);
@@ -30,10 +33,12 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
         avatar,
         vibe,
         cuisinePreferences,
+        onboardingComplete,
         setName,
         setAvatar,
         setVibe,
         addCuisinePreference,
+        setOnboardingComplete,
       }}>
       {children}
     </OnboardingContext.Provider>

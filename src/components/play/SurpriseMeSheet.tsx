@@ -1,48 +1,76 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Modal } from 'react-native';
-import styled from 'styled-components/native';
+import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
+import { useTheme } from '@/theme/ThemeProvider';
+import Animated, { FadeIn, SlideInDown, SlideOutDown } from 'react-native-reanimated';
 
-const ModalContainer = styled(View)`
-  flex: 1;
-  justify-content: flex-end;
-  background-color: rgba(0, 0, 0, 0.5);
-`;
+type Colors = {
+  background: string;
+  card: string;
+  primary: string;
+  accent: string;
+  text: string;
+  muted: string;
+  error: string;
+  border: string;
+  overlay: string;
+};
 
-const SheetContainer = styled(View)`
-  background-color: ${({ theme }) => theme.colors.card};
-  padding: 20px;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  align-items: center;
-`;
-
-const Title = styled(Text)`
-  font-size: ${({ theme }) => theme.fontSizes.l}px;
-  color: ${({ theme }) => theme.colors.text};
-  font-weight: bold;
-  margin-bottom: 10px;
-`;
-
-const SuggestionText = styled(Text)`
-  font-size: 24px;
-  color: ${({ theme }) => theme.colors.primary};
-  font-weight: bold;
-  margin-bottom: 20px;
-`;
-
-const Button = styled(TouchableOpacity)`
-  background-color: ${({ theme }) => theme.colors.primary};
-  padding: ${({ theme }) => theme.spacing.m}px;
-  border-radius: 8px;
-  width: 100%;
-  align-items: center;
-  margin-bottom: 10px;
-`;
-
-const ButtonText = styled(Text)`
-  color: white;
-  font-size: ${({ theme }) => theme.fontSizes.m}px;
-`;
+const createStyles = (colors: Colors) => StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: colors.overlay,
+  },
+  sheetContainer: {
+    backgroundColor: colors.card,
+    padding: 24,
+    paddingBottom: 40,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 20,
+    color: colors.text,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  suggestionText: {
+    fontFamily: 'Georgia',
+    fontSize: 32,
+    color: colors.primary,
+    fontWeight: 'bold',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  button: {
+    backgroundColor: colors.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 9999,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  secondaryButton: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  secondaryButtonText: {
+    color: colors.text,
+  },
+  closeButtonText: {
+    color: colors.muted,
+    fontSize: 16,
+    marginTop: 8,
+  },
+});
 
 interface SurpriseMeSheetProps {
   visible: boolean;
@@ -53,27 +81,39 @@ interface SurpriseMeSheetProps {
 }
 
 export const SurpriseMeSheet = ({ visible, suggestion, onClose, onAccept, onSpinAgain }: SurpriseMeSheetProps) => {
+  const theme = useTheme();
+  if (!theme) return null; // Or a loading/error state
+  const { colors } = theme;
+  const styles = createStyles(colors);
+
   return (
     <Modal
-      animationType="slide"
+      animationType="none"
       transparent={true}
       visible={visible}
       onRequestClose={onClose}>
-      <ModalContainer>
-        <SheetContainer>
-          <Title>How about...</Title>
-          <SuggestionText>{suggestion?.name}</SuggestionText>
-          <Button onPress={onAccept}>
-            <ButtonText>Lock it in</ButtonText>
-          </Button>
-          <Button onPress={onSpinAgain} style={{ backgroundColor: '#7f8c8d' }}>
-            <ButtonText>Spin Again</ButtonText>
-          </Button>
-          <TouchableOpacity onPress={onClose} style={{ marginTop: 10 }}>
-            <Text style={{ color: 'gray' }}>Close</Text>
+      <Animated.View 
+        style={styles.modalContainer}
+        entering={FadeIn.duration(300)}
+      >
+        <Animated.View 
+          style={styles.sheetContainer}
+          entering={SlideInDown.duration(300)}
+          exiting={SlideOutDown.duration(300)}
+        >
+          <Text style={styles.title}>How about...</Text>
+          <Text style={styles.suggestionText}>{suggestion?.name || '...'}</Text>
+          <TouchableOpacity style={styles.button} onPress={onAccept}>
+            <Text style={styles.buttonText}>Lock it in</Text>
           </TouchableOpacity>
-        </SheetContainer>
-      </ModalContainer>
+          <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={onSpinAgain}>
+            <Text style={[styles.buttonText, styles.secondaryButtonText]}>Spin Again</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onClose}>
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </Animated.View>
     </Modal>
   );
 };

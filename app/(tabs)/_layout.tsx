@@ -2,19 +2,23 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { FontAwesome } from '@expo/vector-icons';
 import { useTheme } from '@/theme/ThemeProvider';
-import { darkTheme, lightTheme } from '@/theme/theme';
 
 export default function TabLayout() {
-  const { isDarkMode } = useTheme();
-  const theme = isDarkMode ? darkTheme : lightTheme;
+  const theme = useTheme();
+  if (!theme) return null;
+  const { colors } = theme;
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.text,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.muted,
         tabBarStyle: {
-          backgroundColor: theme.colors.card,
+          backgroundColor: colors.card,
+          borderTopColor: colors.border,
+          borderTopWidth: 1,
+          height: 90,
+          paddingBottom: 30,
         },
         headerShown: false,
       }}>
@@ -44,6 +48,13 @@ export default function TabLayout() {
         options={{
           title: 'Settings',
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="cog" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="play-swipe"
+        options={{
+          href: null, // Hide from tab bar
+          title: 'Swipe',
         }}
       />
     </Tabs>

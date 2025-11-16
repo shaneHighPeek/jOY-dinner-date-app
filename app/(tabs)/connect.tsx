@@ -1,71 +1,157 @@
-import { Text, View, TouchableOpacity, TextInput, Share } from 'react-native';
-import styled from 'styled-components/native';
+import { Text, View, TouchableOpacity, TextInput, Share, StyleSheet } from 'react-native';
 import { useUser } from '@/hooks/useUser';
 import { useAuth } from '@/hooks/useAuth';
-import { doc, writeBatch } from 'firebase/firestore';
+import { doc, writeBatch, getDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useState } from 'react';
+import { useTheme } from '@/theme/ThemeProvider';
+import { useRouter } from 'expo-router';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
-const Container = styled(View)`
-  flex: 1;
-  background-color: ${({ theme }) => theme.colors.background};
-  padding: 20px;
-  padding-top: 60px;
-`;
+type Colors = {
+  background: string;
+  card: string;
+  primary: string;
+  accent: string;
+  text: string;
+  muted: string;
+  error: string;
+  border: string;
+};
 
-const Title = styled(Text)`
-  font-size: ${({ theme }) => theme.fontSizes.xl}px;
-  color: ${({ theme }) => theme.colors.text};
-  font-weight: bold;
-  margin-bottom: 20px;
-`;
-
-const Input = styled(TextInput)`
-  width: 100%;
-  background-color: ${({ theme }) => theme.colors.card};
-  color: ${({ theme }) => theme.colors.text};
-  padding: ${({ theme }) => theme.spacing.m}px;
-  border-radius: 8px;
-  font-size: ${({ theme }) => theme.fontSizes.m}px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  margin-bottom: ${({ theme }) => theme.spacing.l}px;
-`;
-
-const Button = styled(TouchableOpacity)`
-  background-color: ${({ theme }) => theme.colors.primary};
-  padding: ${({ theme }) => theme.spacing.m}px;
-  border-radius: 8px;
-  width: 100%;
-  align-items: center;
-  margin-bottom: 20px;
-`;
-
-const ButtonText = styled(Text)`
-  color: white;
-  font-size: ${({ theme }) => theme.fontSizes.m}px;
-`;
-
-const InviteContainer = styled(View)`
-  margin-top: 40px;
-  align-items: center;
-`;
-
-const InviteCode = styled(Text)`
-  font-size: 24px;
-  font-weight: bold;
-  color: ${({ theme }) => theme.colors.accent};
-  margin-bottom: 10px;
-`;
+const createStyles = (colors: Colors) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    padding: 20,
+    paddingTop: 60,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 26,
+    color: colors.text,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: colors.muted,
+    textAlign: 'center',
+  },
+  tilesContainer: {
+    gap: 16,
+  },
+  testButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    backgroundColor: 'rgba(255, 0, 0, 0.7)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    zIndex: 1000,
+  },
+  testButtonText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  tile: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: colors.border,
+    alignItems: 'center',
+  },
+  tileIcon: {
+    fontSize: 40,
+    marginBottom: 8,
+  },
+  tileTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 6,
+  },
+  tileSubtitle: {
+    fontSize: 13,
+    color: colors.muted,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  inviteCode: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: 12,
+    letterSpacing: 3,
+  },
+  button: {
+    backgroundColor: colors.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  input: {
+    width: '100%',
+    backgroundColor: colors.background,
+    color: colors.text,
+    padding: 14,
+    borderRadius: 12,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  connectedContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  connectedText: {
+    fontSize: 18,
+    color: colors.muted,
+    textAlign: 'center',
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 8,
+  },
+});
 
 const NotConnectedView = () => {
+  const theme = useTheme();
+  if (!theme) return null;
+  const { colors } = theme;
+  const styles = createStyles(colors);
   const { user } = useAuth();
+  const { userData } = useUser();
+  const router = useRouter();
   const [partnerCode, setPartnerCode] = useState('');
+  const [connecting, setConnecting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleShare = async () => {
     if (!user) return;
     try {
       await Share.share({
-        message: `Join me on jOY! My invite code is: ${user.uid}`,
+        message: `Join me on jOY! My invite code is: ${user.uid.substring(0, 8).toUpperCase()}`,
       });
     } catch (error) {
       console.error('Share failed', error);
@@ -73,65 +159,210 @@ const NotConnectedView = () => {
   };
 
   const handleConnect = async () => {
-    if (!user || !partnerCode) return;
+    if (!user || !partnerCode || connecting) return;
+
+    setConnecting(true);
+    setError('');
 
     try {
+      // Verify partner exists
+      const partnerRef = doc(db, 'users', partnerCode);
+      const partnerSnap = await getDoc(partnerRef);
+
+      if (!partnerSnap.exists()) {
+        setError('Partner code not found. Please check and try again.');
+        setConnecting(false);
+        return;
+      }
+
+      const partnerData = partnerSnap.data();
+
+      // Check if partner is already connected to someone else
+      if (partnerData.coupleId && partnerData.coupleId !== '') {
+        setError('This partner is already connected to someone else.');
+        setConnecting(false);
+        return;
+      }
+
+      // Create couple ID (sorted to ensure consistency)
       const coupleId = [user.uid, partnerCode].sort().join('_');
       const batch = writeBatch(db);
 
+      // Update current user
       const userRef = doc(db, 'users', user.uid);
-      batch.update(userRef, { coupleId, partnerId: partnerCode });
+      batch.update(userRef, {
+        coupleId,
+        partnerId: partnerCode,
+        partnerName: partnerData.name || 'Partner',
+        connectedAt: serverTimestamp(),
+      });
 
-      const partnerRef = doc(db, 'users', partnerCode);
-      batch.update(partnerRef, { coupleId, partnerId: user.uid });
+      // Update partner
+      batch.update(partnerRef, {
+        coupleId,
+        partnerId: user.uid,
+        partnerName: userData?.name || 'Partner',
+        connectedAt: serverTimestamp(),
+        // Share premium membership if current user has it
+        isPremium: userData?.isPremium || partnerData.isPremium || false,
+        trialEndDate: userData?.trialEndDate || partnerData.trialEndDate || null,
+      });
+
+      // Also update current user with shared premium status
+      batch.update(userRef, {
+        isPremium: userData?.isPremium || partnerData.isPremium || false,
+        trialEndDate: userData?.trialEndDate || partnerData.trialEndDate || null,
+      });
 
       await batch.commit();
-    } catch (error) {
+
+      // Navigate to connection success flow
+      router.push('/connection-success' as any);
+    } catch (error: any) {
       console.error('Failed to connect with partner:', error);
+      setError('Connection failed. Please try again.');
+      setConnecting(false);
+    }
+  };
+
+  // Test mode - simulate partner connection without real partner
+  const handleTestConnection = async () => {
+    if (!user || connecting) return;
+
+    setConnecting(true);
+    setError('');
+
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      const batch = writeBatch(db);
+      
+      // Create a fake couple ID for testing
+      const testCoupleId = `${user.uid}_TEST_PARTNER`;
+      
+      batch.update(userRef, {
+        coupleId: testCoupleId,
+        partnerId: 'TEST_PARTNER',
+        partnerName: 'Test Partner',
+        connectedAt: serverTimestamp(),
+      });
+
+      await batch.commit();
+
+      // Navigate to connection success flow
+      router.push('/connection-success' as any);
+    } catch (error: any) {
+      console.error('Failed to test connection:', error);
+      setError('Test connection failed.');
+      setConnecting(false);
     }
   };
 
   return (
-    <>
-      <Title>Connect with your Partner</Title>
-      <Input
-        placeholder="Enter your partner's code"
-        placeholderTextColor="gray"
-        value={partnerCode}
-        onChangeText={setPartnerCode}
-      />
-      <Button onPress={handleConnect}>
-        <ButtonText>Connect</ButtonText>
-      </Button>
+    <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+      {/* Test Connection Button - Remove in production */}
+      <TouchableOpacity 
+        style={styles.testButton} 
+        onPress={handleTestConnection}
+        disabled={connecting}
+      >
+        <Text style={styles.testButtonText}>TEST CONNECTION</Text>
+      </TouchableOpacity>
 
-      <InviteContainer>
-        <Title>Or Invite Them</Title>
-        <InviteCode>{user?.uid}</InviteCode>
-        <Button onPress={handleShare}>
-          <ButtonText>Share Your Code</ButtonText>
-        </Button>
-      </InviteContainer>
-    </>
+      <View style={styles.header}>
+        <Animated.Text 
+          style={styles.title}
+          entering={FadeInDown.duration(800).delay(200)}
+        >
+          Make it Official
+        </Animated.Text>
+        <Animated.Text 
+          style={styles.subtitle}
+          entering={FadeInDown.duration(800).delay(300)}
+        >
+          Connect with your partner to start matching
+        </Animated.Text>
+      </View>
+
+      <Animated.View 
+        style={styles.tilesContainer}
+        entering={FadeInDown.duration(800).delay(700)}
+      >
+        {/* Invite Tile - First */}
+        <View style={styles.tile}>
+          <Text style={styles.tileIcon}>💌</Text>
+          <Text style={styles.tileTitle}>Invite Your Partner</Text>
+          <Text style={styles.tileSubtitle}>Share your unique code</Text>
+          <Text style={styles.inviteCode}>{user?.uid.substring(0, 8).toUpperCase()}</Text>
+          <TouchableOpacity style={styles.button} onPress={handleShare}>
+            <Text style={styles.buttonText}>Share Invite Code</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Connect Tile - Second */}
+        <View style={styles.tile}>
+          <Text style={styles.tileIcon}>🔗</Text>
+          <Text style={styles.tileTitle}>Connect with Code</Text>
+          <Text style={styles.tileSubtitle}>Enter your partner's code</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter code"
+            placeholderTextColor={colors.muted}
+            value={partnerCode}
+            onChangeText={(text) => {
+              setPartnerCode(text.toUpperCase());
+              setError('');
+            }}
+            autoCapitalize="characters"
+            maxLength={8}
+            editable={!connecting}
+          />
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          <TouchableOpacity 
+            style={[styles.button, (!partnerCode || connecting) && { opacity: 0.5 }]} 
+            onPress={handleConnect}
+            disabled={!partnerCode || connecting}
+          >
+            <Text style={styles.buttonText}>
+              {connecting ? 'Connecting...' : 'Connect Now'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+    </Animated.View>
   );
 };
 
-const ConnectedView = ({ partnerName }: { partnerName: string }) => (
-  <>
-    <Title>You're Connected!</Title>
-    <Text>You are connected with {partnerName}.</Text>
-  </>
-);
+const ConnectedView = ({ partnerName }: { partnerName: string }) => {
+  const theme = useTheme();
+  if (!theme) return null;
+  const { colors } = theme;
+  const styles = createStyles(colors);
+
+  return (
+    <Animated.View 
+      style={styles.connectedContainer}
+      entering={FadeIn.duration(300)}
+    >
+      <Text style={styles.title}>You're Connected!</Text>
+      <Text style={styles.connectedText}>You are connected with {partnerName}.</Text>
+    </Animated.View>
+  );
+};
 
 export default function ConnectScreen() {
   const { userData } = useUser();
+  const theme = useTheme();
+  if (!theme) return null;
+  const { colors } = theme;
+  const styles = createStyles(colors);
 
   return (
-    <Container>
+    <View style={styles.container}>
       {userData?.coupleId ? (
         <ConnectedView partnerName={userData.partnerName || 'your partner'} />
       ) : (
         <NotConnectedView />
       )}
-    </Container>
+    </View>
   );
 }

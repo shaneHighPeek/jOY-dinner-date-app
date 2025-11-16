@@ -1,26 +1,35 @@
 import React, { createContext, useState, useMemo, useContext } from 'react';
-import { ThemeProvider as StyledProvider } from 'styled-components/native';
-import { lightTheme, darkTheme } from './theme';
+import { useColorScheme, Platform } from 'react-native';
+import { tokens } from './tokens';
+import { createThemedStyles } from './utils';
 
-const ThemeContext = createContext({
-  isDarkMode: false,
-  toggleTheme: () => {},
-});
+type ThemeContextType = {
+  isDarkMode: boolean;
+  toggleTheme: () => void;
+  styles: ReturnType<typeof createThemedStyles>;
+  colors: typeof tokens.colors.dark | typeof tokens.colors.light;
+};
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const systemColorScheme = useColorScheme();
+  const [isDarkMode, setIsDarkMode] = useState(systemColorScheme === 'dark');
 
-  const toggleTheme = () => {
-    setIsDarkMode(prevMode => !prevMode);
-  };
+  const toggleTheme = () => setIsDarkMode(prev => !prev);
 
-  const theme = useMemo(() => (isDarkMode ? darkTheme : lightTheme), [isDarkMode]);
+  const value = useMemo(() => ({
+    isDarkMode,
+    toggleTheme,
+    styles: createThemedStyles(isDarkMode),
+    colors: isDarkMode ? tokens.colors.dark : tokens.colors.light,
+  }), [isDarkMode]);
 
   return (
-    <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
-      <StyledProvider theme={theme}>{children}</StyledProvider>
+    <ThemeContext.Provider value={value}>
+      {children}
     </ThemeContext.Provider>
   );
 };

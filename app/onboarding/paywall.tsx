@@ -1,36 +1,102 @@
-import { Text, View, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useTheme } from '@/theme/ThemeProvider';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/lib/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
     padding: 24,
+    paddingTop: 80,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  diamond: {
+    fontSize: 48,
+    marginBottom: 16,
   },
   title: {
-    fontSize: 24,
-    color: '#17202A',
-    textAlign: 'center',
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 16,
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#17202A',
+    color: colors.muted,
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 32,
+  },
+  featureList: {
+    marginBottom: 32,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  featureText: {
+    fontSize: 16,
+    color: colors.text,
+    marginLeft: 12,
+  },
+  planContainer: {
+    marginBottom: 24,
+  },
+  plan: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    marginBottom: 16,
+  },
+  selectedPlan: {
+    borderColor: colors.primary,
+  },
+  planDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  planName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.text,
+  },
+  planPrice: {
+    fontSize: 16,
+    color: colors.text,
+  },
+  planSubtext: {
+    fontSize: 14,
+    color: colors.muted,
+    marginTop: 4,
+  },
+  saveBadge: {
+    backgroundColor: colors.primary,
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginLeft: 8,
   },
   button: {
-    backgroundColor: '#E74C3C',
-    padding: 16,
-    borderRadius: 8,
-    width: '100%',
+    backgroundColor: colors.primary,
+    paddingVertical: 18,
+    borderRadius: 30,
     alignItems: 'center',
   },
   buttonText: {
@@ -40,12 +106,19 @@ const styles = StyleSheet.create({
 });
 
 export default function PaywallScreen() {
-  const { name, avatar, vibe, cuisinePreferences } = useOnboarding();
-  const { user, setOnboardingComplete } = useAuth();
+  const router = useRouter();
+  const theme = useTheme();
+  const { setOnboardingComplete } = useOnboarding();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState('yearly');
 
-  const handleStartTrial = async () => {
+  if (!theme) return null;
+  const { colors } = theme;
+  const styles = createStyles(colors);
+
+  const handleContinue = async () => {
     if (!user) {
       setError('No user found. Please try signing in again.');
       return;
@@ -55,51 +128,91 @@ export default function PaywallScreen() {
     setError(null);
 
     try {
-      console.log('Creating user profile for:', user.uid);
-      console.log('User data:', { name, avatar, vibe, cuisinePreferences });
-
       const trialEndDate = new Date();
       trialEndDate.setDate(trialEndDate.getDate() + 3);
 
-      await setDoc(doc(db, 'users', user.uid), {
-        name,
-        avatar,
-        vibe,
-        cuisinePreferences,
-        createdAt: new Date(),
+      await updateDoc(doc(db, 'users', user.uid), {
+        onboardingComplete: true,
         trialEndDate,
         isPremium: true, // During trial
-        xp: 0,
-        level: 1,
-        hints: 1,
       });
 
-      console.log('User profile created successfully!');
       setOnboardingComplete(true);
+      setLoading(false);
+      
+      // Navigate to main app
+      router.replace('/play');
     } catch (error: any) {
-      console.error('Failed to create user profile:', error);
-      setError(error.message || 'Failed to create profile. Please try again.');
+      console.error('Failed to update user profile:', error);
+      setError(error.message || 'Failed to complete onboarding. Please try again.');
       setLoading(false);
     }
   };
 
+  const features = [
+    'One subscription covers both you and your partner',
+    'Unlock the \'Eat In\' game mode',
+    'Scan and save unlimited recipes',
+    'Get personalized recipe suggestions',
+  ];
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Unlock Everything</Text>
-      <Text style={styles.subtitle}>Start your free 3-day trial to get unlimited access to all features.</Text>
-      <TouchableOpacity 
-        style={styles.button} 
-        onPress={handleStartTrial}
-        disabled={loading}>
-        {loading ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text style={styles.buttonText}>Start Free Trial</Text>
-        )}
-      </TouchableOpacity>
-      {error && (
-        <Text style={{ color: 'red', marginTop: 20, textAlign: 'center' }}>{error}</Text>
-      )}
+      <Animated.View entering={FadeInUp.duration(500)} style={styles.header}>
+        <Text style={styles.diamond}>💎</Text>
+        <Text style={styles.title}>Unlock Premium Access</Text>
+        <Text style={styles.subtitle}>Create your account and start your free 3-day trial.</Text>
+      </Animated.View>
+
+      <Animated.View entering={FadeInUp.duration(500).delay(200)} style={styles.featureList}>
+        {features.map((feature, index) => (
+          <View key={index} style={styles.featureItem}>
+            <Text>✅</Text>
+            <Text style={styles.featureText}>{feature}</Text>
+          </View>
+        ))}
+      </Animated.View>
+
+      <Animated.View entering={FadeInUp.duration(500).delay(400)} style={styles.planContainer}>
+        <TouchableOpacity 
+          style={[styles.plan, selectedPlan === 'yearly' && styles.selectedPlan]}
+          onPress={() => setSelectedPlan('yearly')}
+        >
+          <View style={styles.planDetails}>
+            <View>
+              <Text style={styles.planName}>Yearly Plan</Text>
+              <Text style={styles.planSubtext}>$34.99 per year</Text>
+            </View>
+            <Text style={styles.saveBadge}>SAVE 42%</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.plan, selectedPlan === 'monthly' && styles.selectedPlan]}
+          onPress={() => setSelectedPlan('monthly')}
+        >
+          <View style={styles.planDetails}>
+            <View>
+              <Text style={styles.planName}>3-day Trial then Monthly</Text>
+              <Text style={styles.planSubtext}>Free for 3 days, then $4.99 per month</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
+
+      <Animated.View entering={FadeInDown.duration(500).delay(600)} style={{ marginTop: 'auto' }}>
+        <TouchableOpacity style={styles.button} onPress={handleContinue} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.buttonText}>Start Free Trial & Create Account</Text>
+          )}
+        </TouchableOpacity>
+        {error && <Text style={{ color: 'red', marginTop: 16, textAlign: 'center' }}>{error}</Text>}
+        <TouchableOpacity onPress={() => setOnboardingComplete(true)}>
+          <Text style={{ color: colors.muted, textAlign: 'center', marginTop: 16 }}>Skip for now</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 }

@@ -1,33 +1,53 @@
 import React from 'react';
-import { View, Text } from 'react-native';
-import styled from 'styled-components/native';
+import { View, Text, StyleSheet, ViewStyle } from 'react-native';
+import { useTheme } from '@/theme/ThemeProvider';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
-const XPContainer = styled(View)`
-  width: 100%;
-  padding: 10px 20px;
-  align-items: center;
-`;
+type Colors = {
+  background: string;
+  card: string;
+  primary: string;
+  accent: string;
+  text: string;
+  muted: string;
+  error: string;
+  border: string;
+};
 
-const LevelText = styled(Text)`
-  font-size: ${({ theme }) => theme.fontSizes.m}px;
-  color: ${({ theme }) => theme.colors.text};
-  font-weight: bold;
-  margin-bottom: 5px;
-`;
+const createStyles = (colors: Colors) => {
+  const styles = StyleSheet.create({
+    container: {
+      width: '100%',
+      padding: 10,
+      paddingHorizontal: 20,
+      alignItems: 'center',
+    },
+    levelText: {
+      fontSize: 16,
+      color: colors.text,
+      fontWeight: '600',
+      marginBottom: 5,
+      letterSpacing: 0.5,
+    },
+    barBackground: {
+      width: '100%',
+      height: 10,
+      backgroundColor: colors.border,
+      borderRadius: 5,
+      overflow: 'hidden',
+      position: 'relative',
+    },
+  });
 
-const BarBackground = styled(View)`
-  width: 100%;
-  height: 10px;
-  background-color: ${({ theme }) => theme.colors.border};
-  border-radius: 5px;
-  overflow: hidden;
-`;
-
-const BarProgress = styled(View)<{ progress: number }>`
-  width: ${({ progress }) => progress}%;
-  height: 100%;
-  background-color: ${({ theme }) => theme.colors.accent};
-`;
+  return {
+    ...styles,
+    barProgress: (progress: number): ViewStyle => ({
+      width: `${progress}%`,
+      height: '100%',
+      backgroundColor: colors.accent,
+    }),
+  };
+};
 
 interface XPBarProps {
   level: number;
@@ -36,14 +56,25 @@ interface XPBarProps {
 }
 
 export const XPBar = ({ level, xp, xpForNextLevel }: XPBarProps) => {
+  const theme = useTheme();
+  if (!theme) throw new Error('XPBar must be used within a ThemeProvider');
+  const { colors } = theme;
+  const styles = createStyles(colors);
+  
   const progress = (xp / xpForNextLevel) * 100;
 
   return (
-    <XPContainer>
-      <LevelText>Level {level}</LevelText>
-      <BarBackground>
-        <BarProgress progress={progress} />
-      </BarBackground>
-    </XPContainer>
+    <Animated.View 
+      style={styles.container}
+      entering={FadeIn.duration(300)}
+    >
+      <Text style={styles.levelText}>Level {level}</Text>
+      <View style={styles.barBackground}>
+        <Animated.View 
+          style={[{ position: 'absolute' }, styles.barProgress(progress)]}
+          entering={FadeIn.duration(600)}
+        />
+      </View>
+    </Animated.View>
   );
 };

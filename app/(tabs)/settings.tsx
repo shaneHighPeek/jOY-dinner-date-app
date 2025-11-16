@@ -1,50 +1,67 @@
-import { Text, View, TouchableOpacity, Switch } from 'react-native';
-import styled from 'styled-components/native';
+import { Text, View, Switch, StyleSheet } from 'react-native';
 import { useTheme } from '@/theme/ThemeProvider';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
-const Container = styled(View)`
-  flex: 1;
-  background-color: ${({ theme }) => theme.colors.background};
-  padding: 20px;
-  padding-top: 60px;
-`;
+type Colors = {
+  background: string;
+  card: string;
+  primary: string;
+  accent: string;
+  text: string;
+  muted: string;
+  error: string;
+  border: string;
+};
 
-const Title = styled(Text)`
-  font-size: ${({ theme }) => theme.fontSizes.xl}px;
-  color: ${({ theme }) => theme.colors.text};
-  font-weight: bold;
-  margin-bottom: 20px;
-`;
-
-const SettingRow = styled(View)`
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 0;
-  border-bottom-width: 1px;
-  border-bottom-color: ${({ theme }) => theme.colors.border};
-`;
-
-const SettingText = styled(Text)`
-  font-size: ${({ theme }) => theme.fontSizes.m}px;
-  color: ${({ theme }) => theme.colors.text};
-`;
+const createStyles = (colors: Colors) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    padding: 24,
+    paddingTop: 60,
+  },
+  title: {
+    fontSize: 32,
+    color: colors.text,
+    fontWeight: 'bold',
+    marginBottom: 24,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  settingText: {
+    fontSize: 18,
+    color: colors.text,
+  },
+});
 
 export default function SettingsScreen() {
-  const { isDarkMode, toggleTheme } = useTheme();
+  const theme = useTheme();
+  if (!theme) return null;
+  const { colors, isDarkMode, toggleTheme } = theme;
+  const styles = createStyles(colors);
 
   return (
-    <Container>
-      <Title>Settings</Title>
-      <SettingRow>
-        <SettingText>Dark Mode</SettingText>
+    <Animated.View 
+      style={styles.container}
+      entering={FadeIn.duration(300)}
+    >
+      <Text style={styles.title}>Settings</Text>
+      <View style={styles.settingRow}>
+        <Text style={styles.settingText}>Dark Mode</Text>
         <Switch
           value={isDarkMode}
           onValueChange={toggleTheme}
-          trackColor={{ false: '#767577', true: '#81b0ff' }}
-          thumbColor={isDarkMode ? '#f5dd4b' : '#f4f3f4'}
+          trackColor={{ false: colors.muted, true: colors.primary }}
+          thumbColor={isDarkMode ? colors.accent : colors.card}
+          ios_backgroundColor={colors.border}
         />
-      </SettingRow>
-    </Container>
+      </View>
+    </Animated.View>
   );
 }

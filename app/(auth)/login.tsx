@@ -1,36 +1,69 @@
-import { Text, View, TouchableOpacity, ActivityIndicator } from 'react-native';
-import styled from 'styled-components/native';
+import { Text, View, TouchableOpacity, StyleSheet, ActivityIndicator, useWindowDimensions } from 'react-native';
+import { useState } from 'react';
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { useState } from 'react';
+import { useTheme } from '@/theme/ThemeProvider';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
-const Container = styled(View)`
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  background-color: ${({ theme }) => theme.colors.background};
-`;
 
-const Title = styled(Text)`
-  font-size: ${({ theme }) => theme.fontSizes.xl}px;
-  color: ${({ theme }) => theme.colors.text};
-  margin-bottom: ${({ theme }) => theme.spacing.xl}px;
-`;
+type Colors = {
+  background: string;
+  card: string;
+  primary: string;
+  accent: string;
+  text: string;
+  muted: string;
+  error: string;
+};
 
-const Button = styled(TouchableOpacity)`
-  background-color: ${({ theme }) => theme.colors.primary};
-  padding: ${({ theme }) => theme.spacing.m}px;
-  border-radius: 8px;
-`;
-
-const ButtonText = styled(Text)`
-  color: white;
-  font-size: ${({ theme }) => theme.fontSizes.m}px;
-`;
+const createStyles = (colors: Colors, window: { width: number; height: number }) => StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
+  content: {
+    width: '80%',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: colors.primary,
+  },
+  title: {
+    fontSize: 24,
+    color: colors.text,
+    marginBottom: 20,
+  },
+  button: {
+    backgroundColor: colors.primary,
+    padding: 15,
+    borderRadius: 8,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  errorText: {
+    color: 'red',
+    marginTop: 20,
+  },
+});
 
 export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const theme = useTheme();
+  if (!theme) throw new Error('LoginScreen must be used within a ThemeProvider');
+  const { colors } = theme;
+  const window = useWindowDimensions();
+  const styles = createStyles(colors, window);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -49,18 +82,46 @@ export default function LoginScreen() {
   };
 
   return (
-    <Container>
-      <Title>Welcome to jOY</Title>
-      <Button onPress={handleLogin} disabled={loading}>
-        {loading ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <ButtonText>Sign In Anonymously</ButtonText>
+    <View style={styles.container}>
+      <Animated.View 
+        style={styles.content}
+        entering={FadeIn.duration(1000)}
+      >
+        <Animated.View 
+          style={styles.logo}
+          entering={FadeInDown.duration(1000).delay(300)}
+        />
+        <Animated.Text 
+          style={styles.title}
+          entering={FadeInDown.duration(1000).delay(600)}
+        >
+          Welcome to jOY
+        </Animated.Text>
+        <Animated.View
+          entering={FadeInDown.duration(1000).delay(900)}
+          style={{ width: '100%' }}
+        >
+          <TouchableOpacity 
+            style={styles.button} 
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <Text style={styles.buttonText}>Sign In Anonymously</Text>
+            )}
+          </TouchableOpacity>
+        </Animated.View>
+        {error && (
+          <Animated.Text 
+            style={styles.errorText}
+            entering={FadeIn.duration(300)}
+          >
+            {error}
+          </Animated.Text>
         )}
-      </Button>
-      {error && (
-        <Text style={{ color: 'red', marginTop: 20 }}>{error}</Text>
-      )}
-    </Container>
+      </Animated.View>
+    </View>
   );
 }

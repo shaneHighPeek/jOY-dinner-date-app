@@ -9,11 +9,11 @@ import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 
 export const unstable_settings = {
-  initialRouteName: '(auth)',
+  initialRouteName: 'welcome',
 };
 
 function RootNavigator() {
-  const { isDarkMode } = useTheme();
+  const { isDarkMode } = useTheme() || {};
   const { user, onboardingComplete, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
@@ -21,11 +21,15 @@ function RootNavigator() {
   useEffect(() => {
     if (loading) return;
 
+    const inWelcomeGroup = segments[0] === 'welcome';
+
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboardingGroup = segments[0] === 'onboarding';
     const inTabsGroup = segments[0] === '(tabs)';
 
     console.log('Navigation check:', { user: !!user, onboardingComplete, segments });
+
+    if (inWelcomeGroup) return;
 
     if (!user && !inAuthGroup) {
       // Redirect to the login page.
@@ -55,6 +59,7 @@ function RootNavigator() {
   return (
     <NavThemeProvider value={navTheme}>
       <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="welcome" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="(auth)" />

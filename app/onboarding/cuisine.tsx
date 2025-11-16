@@ -1,67 +1,138 @@
-import React, { useState } from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useOnboarding } from '@/hooks/useOnboarding';
-import { SwipeableCard } from '@/components/onboarding/SwipeableCard';
+import { SwipeableCard, SwipeableCardRef } from '@/components/onboarding/SwipeableCard';
+import { cuisines as allCuisines } from '@/data';
+import Animated, { FadeIn, FadeInUp, FadeInDown } from 'react-native-reanimated';
+import { useTheme } from '@/theme/ThemeProvider';
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    padding: 24,
+    paddingTop: 80,
+  },
+  progressContainer: {
+    height: 8,
+    backgroundColor: '#333',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 40,
+  },
+  progressBar: {
+    height: '100%',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 8,
+    color: colors.text,
+  },
+  subtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 40,
+    color: colors.muted,
+  },
+  deckContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: 24,
   },
-  title: {
-    fontSize: 24,
-    color: '#17202A',
-    textAlign: 'center',
-    position: 'absolute',
-    top: 100,
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 20,
+  },
+  circleButton: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
 });
 
-const initialCuisines = [
-  { id: '1', name: 'Italian' },
-  { id: '2', name: 'Mexican' },
-  { id: '3', name: 'Japanese' },
-  { id: '4', name: 'Indian' },
-  { id: '5', name: 'Thai' },
-  { id: '6', name: 'Chinese' },
-  { id: '7', name: 'American' },
-  { id: '8', name: 'French' },
-  { id: '9', name: 'Greek' },
-  { id: '10', name: 'Spanish' },
-];
 
 export default function CuisineScreen() {
   const router = useRouter();
   const { addCuisinePreference } = useOnboarding();
-  const [cuisines, setCuisines] = useState(initialCuisines);
+  const [cuisines, setCuisines] = useState(allCuisines.slice(0, 8));
+  const swipeableCardRefs = useRef<SwipeableCardRef[]>([]);
+  const theme = useTheme();
+  if (!theme) return null;
+  const { colors } = theme;
+  const styles = createStyles(colors);
 
-  const handleSwipe = (item: { id: string; name: string }, direction: 'left' | 'right') => {
+  const handleSwipe = (item: (typeof allCuisines)[0], direction: 'left' | 'right') => {
     if (direction === 'right') {
       addCuisinePreference(item.name);
     }
 
-    setCuisines(prev => prev.filter(c => c.id !== item.id));
+    // The swipe is initiated by the button, so we need to manually remove the card
+    // from the state here.
+    setTimeout(() => {
+      setCuisines(prev => prev.filter(c => c.id !== item.id));
+      if (cuisines.length === 1) {
+        router.push('/onboarding/progress');
+      }
+    }, 300); // Delay to allow swipe animation to complete
+  };
 
-    if (cuisines.length === 1) {
-      router.push('/onboarding/progress');
+  const handleButtonPress = (direction: 'left' | 'right') => {
+    // The topmost card is at index 0 after reversing
+    const currentCardRef = swipeableCardRefs.current[0];
+    if (currentCardRef) {
+      currentCardRef.swipe(direction);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>What are you in the mood for?</Text>
-      {cuisines.map((item, index) => (
-        <SwipeableCard
-          key={item.id}
-          item={item}
-          onSwipe={handleSwipe}
-          index={index}
-        />
-      )).reverse()}
+      <Animated.View style={styles.progressContainer} entering={FadeIn.duration(500)}>
+        <View style={[styles.progressBar, { backgroundColor: colors.primary, width: '80%' }]} />
+      </Animated.View>
+
+      <Animated.Text entering={FadeInUp.duration(500).delay(200)} style={styles.title}>
+        Tell us what you like
+      </Animated.Text>
+      <Animated.Text entering={FadeInUp.duration(500).delay(400)} style={styles.subtitle}>
+        Vote on a few cuisines to get started.
+      </Animated.Text>
+
+      <View style={styles.deckContainer}>
+        {cuisines.map((item, index) => (
+          <SwipeableCard
+            ref={(ref) => {
+              if (ref) {
+                swipeableCardRefs.current[index] = ref;
+              }
+            }}
+            key={item.id}
+            item={item}
+            onSwipe={handleSwipe}
+            index={index}
+          />
+        )).reverse()}
+      </View>
+
+      <Animated.View entering={FadeInDown.duration(500).delay(800)} style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.circleButton} onPress={() => handleButtonPress('left')}>
+          <Text style={{ fontSize: 32 }}>❌</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.circleButton} onPress={() => handleButtonPress('right')}>
+          <Text style={{ fontSize: 32 }}>💚</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 }

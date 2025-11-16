@@ -1,64 +1,84 @@
-import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTheme } from '@/theme/ThemeProvider';
 import { useOnboarding } from '@/hooks/useOnboarding';
-import { useState } from 'react';
+import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
     padding: 24,
+    paddingTop: 80,
+    backgroundColor: colors.background,
+  },
+  progressContainer: {
+    height: 8,
+    backgroundColor: '#333',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 40,
+  },
+  progressBar: {
+    height: '100%',
   },
   title: {
-    fontSize: 24,
-    color: '#17202A',
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 8,
+    color: colors.text,
+  },
+  subtitle: {
+    fontSize: 16,
     textAlign: 'center',
     marginBottom: 40,
+    color: colors.muted,
   },
   vibeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginBottom: 40,
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    paddingHorizontal: 8,
   },
   vibeTile: {
-    padding: 16,
-    borderRadius: 8,
-    margin: 8,
-    borderWidth: 1,
-    borderColor: '#E5E7E9',
-    width: 150,
-    height: 100,
-    alignItems: 'center',
+    width: '47%',
+    aspectRatio: 1,
+    backgroundColor: colors.card,
+    borderRadius: 20,
     justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
   vibeTileSelected: {
-    backgroundColor: '#E74C3C',
+    borderColor: colors.primary,
   },
-  vibeTileUnselected: {
-    backgroundColor: '#FFFFFF',
+  vibeEmoji: {
+    fontSize: 48,
+    marginBottom: 8,
   },
   vibeText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
   },
-  vibeTextSelected: {
-    color: 'white',
-  },
-  vibeTextUnselected: {
-    color: '#17202A',
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 40,
+    left: 24,
+    right: 24,
   },
   button: {
-    backgroundColor: '#E74C3C',
-    padding: 16,
-    borderRadius: 8,
-    width: '100%',
+    paddingVertical: 18,
+    borderRadius: 30,
     alignItems: 'center',
+    backgroundColor: colors.primary,
   },
   buttonDisabled: {
-    backgroundColor: '#BDC3C7',
+    backgroundColor: colors.card,
   },
   buttonText: {
     color: 'white',
@@ -66,12 +86,24 @@ const styles = StyleSheet.create({
   },
 });
 
-const vibes = ['Chill', 'Adventurous', 'Romantic', 'Foodie', 'Spontaneous', 'Homebody'];
+const vibes = [
+  { name: 'Chill', emoji: '😊' },
+  { name: 'Adventurous', emoji: '🌮' },
+  { name: 'Fancy', emoji: '🥂' },
+  { name: 'Romantic', emoji: '💖' },
+  { name: 'Cozy', emoji: '🛋️' },
+  { name: 'Spontaneous', emoji: '🚀' },
+];
 
 export default function VibeScreen() {
   const router = useRouter();
+  const theme = useTheme();
   const { setVibe } = useOnboarding();
   const [selectedVibe, setSelectedVibe] = useState('');
+
+  if (!theme) return null;
+  const { colors } = theme;
+  const styles = createStyles(colors);
 
   const handleContinue = () => {
     setVibe(selectedVibe);
@@ -80,31 +112,42 @@ export default function VibeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>What's your vibe?</Text>
+      <Animated.View style={styles.progressContainer} entering={FadeIn.duration(500)}>
+        <View style={[styles.progressBar, { backgroundColor: colors.primary, width: '66%' }]} />
+      </Animated.View>
+
+      <Animated.Text entering={FadeInUp.duration(500).delay(200)} style={styles.title}>
+        What's your vibe?
+      </Animated.Text>
+      <Animated.Text entering={FadeInUp.duration(500).delay(400)} style={styles.subtitle}>
+        Pick one to help us set the mood.
+      </Animated.Text>
+
       <View style={styles.vibeGrid}>
-        {vibes.map(vibe => (
+        {vibes.map((vibe, index) => (
           <TouchableOpacity
-            key={vibe}
+            key={vibe.name}
             style={[
               styles.vibeTile,
-              selectedVibe === vibe ? styles.vibeTileSelected : styles.vibeTileUnselected
+              selectedVibe === vibe.name && styles.vibeTileSelected,
             ]}
-            onPress={() => setSelectedVibe(vibe)}>
-            <Text style={[
-              styles.vibeText,
-              selectedVibe === vibe ? styles.vibeTextSelected : styles.vibeTextUnselected
-            ]}>
-              {vibe}
-            </Text>
+            onPress={() => setSelectedVibe(vibe.name)}
+          >
+            <Text style={styles.vibeEmoji}>{vibe.emoji}</Text>
+            <Text style={styles.vibeText}>{vibe.name}</Text>
           </TouchableOpacity>
         ))}
       </View>
-      <TouchableOpacity 
-        style={[styles.button, !selectedVibe && styles.buttonDisabled]} 
-        onPress={handleContinue} 
-        disabled={!selectedVibe}>
-        <Text style={styles.buttonText}>Continue</Text>
-      </TouchableOpacity>
+
+      <Animated.View entering={FadeInDown.duration(500).delay(1400)} style={styles.buttonContainer}>
+        <TouchableOpacity 
+          style={[styles.button, !selectedVibe && styles.buttonDisabled]} 
+          onPress={handleContinue} 
+          disabled={!selectedVibe}
+        >
+          <Text style={styles.buttonText}>Continue</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 }
