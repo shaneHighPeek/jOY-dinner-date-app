@@ -175,11 +175,11 @@ Building "Dinner Date Without Debate" - a mobile app that helps couples decide w
 - [ ] **TODO**: Level progression logic
 - [ ] **TODO**: Level-up celebrations
 
-### 5.2 Hints System 🔄
+### 5.2 Hints System 🔄 (De-prioritized)
 - [x] Hint counter display in UI
 - [x] Initial hint awarded on onboarding completion
 - [x] Hints stored in Firestore
-- [ ] **TODO**: Hint usage UI
+- [ ] **TODO**: Hint usage UI (To be completed after Core Premium Features)
 - [ ] **TODO**: Reveal partner preferences
 - [ ] **TODO**: Hint earning logic (streaks, purchases)
 
@@ -191,7 +191,31 @@ Building "Dinner Date Without Debate" - a mobile app that helps couples decide w
 
 ---
 
-## Phase 6: Premium Features 🔄 IN PROGRESS
+## Phase 6: Core Premium Feature Build-Out (NEW FOCUS) 🚀
+
+This phase represents a strategic shift to build the app's killer premium feature: an AI-powered recipe scanner and personal cookbook. This system is designed to provide immense user value and create a strong retention loop.
+
+### 6.1 Recipe Detail Page (Foundation)
+- [ ] **TODO**: Create a new screen to display a full recipe (image, ingredients, instructions).
+- [ ] **TODO**: This will be the destination for both scanned recipes and saved matches.
+- [ ] **TODO**: Add "Save to Cookbook" functionality.
+
+### 6.2 AI Recipe Scanner (The "Wow" Feature)
+- [ ] **TODO**: Integrate camera permissions and UI (`expo-camera`).
+- [ ] **TODO**: Integrate with an AI Vision API (e.g., OpenAI GPT-4 Vision) to parse text from images.
+- [ ] **TODO**: Extract recipe name, ingredients, and instructions from the parsed text.
+- [ ] **TODO**: Populate the Recipe Detail Page with the scanned data.
+- [ ] **TODO**: Handle image uploads and API costs.
+
+### 6.3 Cookbook & Meal Planner (The "Habit" Feature)
+- [ ] **TODO**: Enhance the existing Cookbook screen to be a fully functional recipe manager.
+- [ ] **TODO**: Store saved/scanned recipes in a dedicated Firestore collection.
+- [ ] **TODO**: Allow users to browse, search, and filter their personal cookbook.
+- [ ] **TODO**: Add a feature to add personal recipes to the swipe deck.
+
+---
+
+## Phase 7: Premium Features (Monetization) 🔄 IN PROGRESS
 
 ### 6.1 Trial System ✅
 - [x] Trial period setup (7 days)
@@ -217,7 +241,7 @@ Building "Dinner Date Without Debate" - a mobile app that helps couples decide w
 
 ---
 
-## Phase 7: Polish & Testing 🔄 IN PROGRESS
+## Phase 8: Polish & Testing 🔄 IN PROGRESS
 
 ### 7.1 UI/UX Polish ✅
 - [x] Consistent spacing and typography across all screens
@@ -247,7 +271,7 @@ Building "Dinner Date Without Debate" - a mobile app that helps couples decide w
 
 ---
 
-## Phase 8: Production Preparation
+## Phase 9: Production Preparation
 
 ### 8.1 Firebase Setup 🔄
 - [x] Firebase project created (joy-windsurf-4979a)
@@ -295,11 +319,11 @@ Building "Dinner Date Without Debate" - a mobile app that helps couples decide w
 4. **Testing on multiple platforms**
 
 ### 🚀 Next Priorities
-1. **Complete XP level progression** with celebrations
-2. **Implement hint usage** to reveal partner preferences
-3. **Integrate payment provider** (RevenueCat recommended)
-4. **Test on iOS and Android** devices
-5. **Prepare for app store submission**
+1. **Build the AI Recipe Scanner & Cookbook system** as the core premium offering.
+2. **Integrate a payment provider** (RevenueCat recommended) to monetize these features.
+3. **Complete the Hints and XP systems** as secondary gamification features.
+4. **Conduct thorough testing** on physical devices.
+5. **Prepare all assets for app store submission**.
 
 ---
 
@@ -322,12 +346,9 @@ Building "Dinner Date Without Debate" - a mobile app that helps couples decide w
 
 ## Next Steps (Immediate)
 
-1. **Save and commit all changes** to GitHub
-2. **Test payment integration** with RevenueCat or Stripe
-3. **Implement level progression** logic and celebrations
-4. **Create hint usage UI** for revealing partner preferences
-5. **Test on iOS simulator** (when available)
-6. **Prepare app store assets** (icons, screenshots, descriptions)
+1. **Build the Recipe Detail Page**: This is the foundational screen required for both the AI Scanner and the Cookbook. It will be a dynamic screen that can display any recipe's information.
+2. **Integrate AI Vision API**: Set up the backend logic to handle image uploads and parsing.
+3. **Build the Camera UI**: Create the interface for scanning recipes.
 
 ---
 

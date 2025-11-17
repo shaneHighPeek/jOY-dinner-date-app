@@ -1,4 +1,4 @@
-import { Text, View, TouchableOpacity, StyleSheet, ActivityIndicator, useWindowDimensions } from 'react-native';
+import { Text, View, TouchableOpacity, StyleSheet, ActivityIndicator, useWindowDimensions, Image } from 'react-native';
 import { useState } from 'react';
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -28,10 +28,10 @@ const createStyles = (colors: Colors, window: { width: number; height: number })
     alignItems: 'center',
   },
   logo: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: colors.primary,
+    width: 150,
+    height: 150,
+    resizeMode: 'contain',
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,
@@ -87,15 +87,12 @@ export default function LoginScreen() {
         style={styles.content}
         entering={FadeIn.duration(1000)}
       >
-        <Animated.View 
-          style={styles.logo}
-          entering={FadeInDown.duration(1000).delay(300)}
-        />
+        <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
         <Animated.Text 
           style={styles.title}
           entering={FadeInDown.duration(1000).delay(600)}
         >
-          Welcome to jOY
+          Dinner without Debate
         </Animated.Text>
         <Animated.View
           entering={FadeInDown.duration(1000).delay(900)}

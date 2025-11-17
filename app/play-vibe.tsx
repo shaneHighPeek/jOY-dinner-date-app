@@ -132,7 +132,8 @@ export default function PlayVibeScreen() {
   };
 
   const handleSurpriseMe = () => {
-    router.push('/play-surprise' as any);
+    // TODO: Revert this to '/play-surprise' after testing
+    router.push('/recipe/123' as any); // Navigate to the recipe page with a mock ID
   };
 
   return (
@@ -172,7 +173,7 @@ export default function PlayVibeScreen() {
           style={styles.surpriseButton}
           onPress={handleSurpriseMe}
         >
-          <Text style={styles.surpriseButtonText}>✨ Surprise Me!</Text>
+          <Text style={styles.surpriseButtonText}>🧪 TEST RECIPE PAGE</Text>
         </TouchableOpacity>
       </View>
     </Animated.View>

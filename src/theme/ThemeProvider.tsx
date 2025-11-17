@@ -14,9 +14,9 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const useTheme = () => useContext(ThemeContext);
 
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+export const ThemeProvider = ({ children, forcedMode }: { children: React.ReactNode; forcedMode?: 'dark' | 'light' }) => {
   const systemColorScheme = useColorScheme();
-  const [isDarkMode, setIsDarkMode] = useState(systemColorScheme === 'dark');
+  const [isDarkMode, setIsDarkMode] = useState(forcedMode ? forcedMode === 'dark' : systemColorScheme === 'dark');
 
   const toggleTheme = () => setIsDarkMode(prev => !prev);
 

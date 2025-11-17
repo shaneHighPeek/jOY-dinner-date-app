@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -16,13 +16,15 @@ const WelcomeScreen = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Animated.View entering={FadeIn.duration(1000)} style={styles.logoContainer}>
-        <Text style={[styles.logo, { color: colors.primary }]}>joy</Text>
-      </Animated.View>
+      <View style={styles.contentContainer}>
+        <Animated.View entering={FadeIn.duration(1000)} style={styles.logoContainer}>
+          <Image source={require('../assets/images/logo.png')} style={styles.logo} />
+        </Animated.View>
 
-      <Animated.Text entering={FadeInUp.duration(1000).delay(500)} style={[styles.subtitle, { color: colors.text }]}>
-        Let's end the dinner debate forever
-      </Animated.Text>
+        <Animated.Text entering={FadeInUp.duration(1000).delay(500)} style={[styles.subtitle, { color: colors.text }]}>
+          Dinner without Debate
+        </Animated.Text>
+      </View>
 
       <Animated.View entering={FadeInDown.duration(1000).delay(1000)} style={styles.buttonContainer}>
         <TouchableOpacity style={[styles.button, { backgroundColor: colors.primary }]} onPress={() => router.push('/login')}>
@@ -36,17 +38,23 @@ const WelcomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 80,
+  },
+  contentContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
   },
   logoContainer: {
     alignItems: 'center',
     marginBottom: 24,
   },
   logo: {
-    fontSize: 96,
-    fontWeight: 'bold',
-    fontFamily: 'Georgia', // A more elegant font
+    width: 150,
+    height: 150,
+    resizeMode: 'contain',
   },
   subtitle: {
     fontSize: 22,
@@ -56,10 +64,9 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   buttonContainer: {
-    position: 'absolute',
-    bottom: 80,
     width: '100%',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
   button: {
     paddingVertical: 18,
