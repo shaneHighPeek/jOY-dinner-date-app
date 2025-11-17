@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
@@ -38,7 +39,7 @@ function RootNavigator() {
     } else if (user && !onboardingComplete && !inOnboardingGroup) {
       // Redirect to the onboarding flow.
       console.log('Redirecting to onboarding');
-      router.replace('/onboarding');
+      router.replace('/onboarding' as any);
     } else if (user && onboardingComplete && !inTabsGroup) {
       // Redirect to the main app.
       console.log('Redirecting to main app');
@@ -71,11 +72,13 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <RootNavigator />
-      </AuthProvider>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <AuthProvider>
+          <RootNavigator />
+        </AuthProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
 
