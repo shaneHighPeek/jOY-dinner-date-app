@@ -175,6 +175,7 @@ export default function PlayVibeScreen() {
         >
           <Text style={styles.surpriseButtonText}>🧪 TEST RECIPE PAGE</Text>
         </TouchableOpacity>
+
       </View>
     </Animated.View>
   );

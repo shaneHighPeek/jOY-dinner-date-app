@@ -191,30 +191,30 @@ Building "Dinner Date Without Debate" - a mobile app that helps couples decide w
 
 ---
 
-## Phase 6: Core Premium Feature Build-Out (NEW FOCUS) 🚀
+## Phase 6: The Cookbook (Core Premium Feature) 🚀
 
-This phase represents a strategic shift to build the app's killer premium feature: an AI-powered recipe scanner and personal cookbook. This system is designed to provide immense user value and create a strong retention loop.
+This phase represents a strategic pivot to build the app's killer premium feature: a personal cookbook with a powerful web importer. This system allows users to save recipes from anywhere on the web and add them to the "Dinner Without Debate" game, creating a strong retention loop and fulfilling the promise of choosing home-cooked meals.
 
-### 6.1 Recipe Detail Page (Foundation) ✅
-- [x] Create dynamic recipe detail screen with modern design
-- [x] Full-screen image header with parallax effect
-- [x] Responsive layout with safe area handling
-- [x] Dark mode support with themed components
-- [x] Back button and save button UI
-- [ ] **TODO**: Connect "Save to Cookbook" functionality to Firebase
+### 6.1 Cookbook Foundation (Partially Complete) ✅
+- [x] Basic Cookbook screen structure with premium gating.
+- [x] Dynamic Recipe Detail Page with modern design.
+- [ ] **TODO**: Define the final Recipe schema in Firestore (title, image, ingredients, instructions, sourceUrl, etc.).
+- [ ] **TODO**: Create API endpoints for CRUD (Create, Read, Update, Delete) operations on recipes.
 
-### 6.2 AI Recipe Scanner (The "Wow" Feature)
-- [ ] **TODO**: Integrate camera permissions and UI (`expo-camera`).
-- [ ] **TODO**: Integrate with an AI Vision API (e.g., OpenAI GPT-4 Vision) to parse text from images.
-- [ ] **TODO**: Extract recipe name, ingredients, and instructions from the parsed text.
-- [ ] **TODO**: Populate the Recipe Detail Page with the scanned data.
-- [ ] **TODO**: Handle image uploads and API costs.
+### 6.2 The Web Importer (The "Magic" Feature) 🔄
+- [ ] **TODO**: Build a backend parsing service that accepts a URL and extracts structured recipe data (e.g., using Schema.org/Recipe metadata).
+- [ ] **TODO**: Implement native "Share to jOY" functionality on iOS and Android.
+- [ ] **TODO**: Create an "Import & Review" screen where users can verify the parsed recipe data before saving.
+- [ ] **TODO**: Connect the "Save to Cookbook" button on the Recipe Detail page to the import logic.
 
-### 6.3 Cookbook & Meal Planner (The "Habit" Feature)
-- [ ] **TODO**: Enhance the existing Cookbook screen to be a fully functional recipe manager.
-- [ ] **TODO**: Store saved/scanned recipes in a dedicated Firestore collection.
-- [ ] **TODO**: Allow users to browse, search, and filter their personal cookbook.
-- [ ] **TODO**: Add a feature to add personal recipes to the swipe deck.
+### 6.3 The Cookbook Experience (The "Habit" Feature) 🔄
+- [ ] **TODO**: Enhance the Cookbook screen to be a fully functional recipe library, displaying a grid of the user's saved recipes.
+- [ ] **TODO**: Implement "Smart Search" to allow users to search their cookbook by title, ingredients, or tags.
+- [ ] **TODO**: Allow users to manually add and edit their own personal recipes.
+
+### 6.4 Game Integration (The Value Prop) 🔄
+- [ ] **TODO**: Update the "Dinner Without Debate" game logic to pull recipes from the user's personal Cookbook.
+- [ ] **TODO**: Ensure user-added recipes appear as swipeable cards in the game deck.
 
 ---
 
@@ -323,9 +323,9 @@ This phase represents a strategic shift to build the app's killer premium featur
 4. **Testing on multiple platforms**
 
 ###  Next Priorities
-1. **Build the AI Recipe Scanner & Cookbook system** as the core premium offering.
-2. **Integrate a payment provider** (RevenueCat recommended) to monetize these features.
-3. **Complete the Hints and XP systems** as secondary gamification features.
+1. **Build "The Cookbook" with the Web Importer** as the core premium offering (Phase 6).
+2. **Integrate a payment provider** (e.g., RevenueCat) to monetize the Cookbook feature.
+3. **Finalize Gamification** (Level progression, Hint usage) as a secondary priority.
 4. **Conduct thorough testing** on physical devices.
 5. **Prepare all assets for app store submission**.
 
@@ -350,10 +350,10 @@ This phase represents a strategic shift to build the app's killer premium featur
 
 ## Next Steps (Immediate)
 
-1. **Integrate Camera System**: Set up `expo-camera` for the AI Recipe Scanner feature.
-2. **Integrate Vision API**: Connect with OpenAI's GPT-4 Vision for recipe text extraction.
-3. **Build Recipe Storage**: Create Firestore collection for saved recipes.
-4. **Enhance Cookbook UI**: Build the recipe browsing and filtering interface.
+1. **Define Recipe Schema**: Finalize and implement the recipe data structure in `src/types` and prepare Firestore rules.
+2. **Build Backend Parser**: Start development on the URL parsing service.
+3. **Implement "Share to jOY"**: Configure the app for native sharing on iOS and Android.
+4. **Enhance Cookbook UI**: Begin building the full recipe library and search interface.
 
 ---
 
