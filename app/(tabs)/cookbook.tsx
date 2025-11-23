@@ -1,8 +1,14 @@
-import { Text, View, StyleSheet } from 'react-native';
+import { Text, View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { Paywall } from '@/components/premium/Paywall';
 import { useTheme } from '@/theme/ThemeProvider';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { useState, useEffect, useCallback } from 'react';
+import { useFocusEffect, router } from 'expo-router';
+import { useAuth } from '@/hooks/useAuth';
+import { getUserRecipes } from '@/services/recipeService';
+import { Recipe } from '@/types/recipe';
+import { RecipeCard } from '@/components/cookbook/RecipeCard';
 
 type Colors = {
   background: string;
@@ -29,8 +35,7 @@ const createStyles = (colors: Colors) => StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 8,
   },
   placeholderText: {
     fontSize: 16,
@@ -41,13 +46,64 @@ const createStyles = (colors: Colors) => StyleSheet.create({
 export default function CookbookScreen() {
   const { isPremium } = usePremiumStatus();
   const theme = useTheme();
+  const { user } = useAuth();
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   if (!theme) return null;
   const { colors } = theme;
   const styles = createStyles(colors);
 
+  const fetchRecipes = useCallback(async () => {
+    if (!user) return;
+    try {
+      setLoading(true);
+      const userRecipes = await getUserRecipes(user.uid);
+      setRecipes(userRecipes);
+      setError(null);
+    } catch (e) {
+      setError('Failed to fetch recipes.');
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchRecipes();
+    }, [fetchRecipes])
+  );
+
   if (!isPremium) {
     return <Paywall />;
   }
+
+  const renderContent = () => {
+    if (loading) {
+      return <ActivityIndicator size="large" color={colors.primary} />;
+    }
+
+    if (error) {
+      return <Text style={styles.placeholderText}>{error}</Text>;
+    }
+
+    if (recipes.length === 0) {
+      return <Text style={styles.placeholderText}>Your saved recipes will appear here.</Text>;
+    }
+
+    return (
+      <FlatList
+        data={recipes}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        renderItem={({ item }) => <RecipeCard recipe={item} />}
+        contentContainerStyle={{ alignItems: 'center' }}
+        showsVerticalScrollIndicator={false}
+      />
+    );
+  };
 
   return (
     <Animated.View 
@@ -56,7 +112,7 @@ export default function CookbookScreen() {
     >
       <Text style={styles.title}>My Cookbook</Text>
       <View style={styles.contentContainer}>
-        <Text style={styles.placeholderText}>Saved recipes will appear here.</Text>
+        {renderContent()}
       </View>
     </Animated.View>
   );
