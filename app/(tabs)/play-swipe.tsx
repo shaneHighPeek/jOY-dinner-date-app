@@ -4,9 +4,11 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useUser } from '@/hooks/useUser';
 import { useAuth } from '@/hooks/useAuth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { foodItems as initialFoodItems } from '@/data';
+import { foodItems as defaultFoodItems } from '@/data';
+import { getUserMeals, MealItem } from '@/services/mealService';
+import { checkLevelUp } from '@/utils/levelSystem';
 import { SwipeableCard } from '@/components/onboarding/SwipeableCard';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
@@ -140,14 +142,23 @@ export default function PlaySwipeScreen() {
   const { userData, loading: userLoading } = useUser();
   const { user } = useAuth();
   const router = useRouter();
-  const [foodItems, setFoodItems] = useState<typeof initialFoodItems>([]);
+  const [foodItems, setFoodItems] = useState<MealItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [swipeCount, setSwipeCount] = useState(0);
   const swipeableCardRefs = useRef<Array<{ swipe: (direction: 'left' | 'right') => void } | null>>([]);
 
-  // Initialize with shuffled food items
+  // Fetch all meals (default + custom) and shuffle them
   useEffect(() => {
-    setFoodItems(shuffleArray(initialFoodItems));
-  }, []);
+    if (user) {
+      const fetchMeals = async () => {
+        setIsLoading(true);
+        const allMeals = await getUserMeals(user.uid);
+        setFoodItems(shuffleArray(allMeals));
+        setIsLoading(false);
+      };
+      fetchMeals();
+    }
+  }, [user]);
 
   if (!theme) throw new Error('PlaySwipeScreen must be used within a ThemeProvider');
   const { colors } = theme;
@@ -170,9 +181,9 @@ export default function PlaySwipeScreen() {
       setFoodItems(prev => {
         const remaining = prev.filter(i => i.id !== item.id);
         
-        // If running low (less than 10 items), add more shuffled items
+        // If running low (less than 10 items), add more shuffled default items
         if (remaining.length < 10) {
-          const newBatch = shuffleArray(initialFoodItems);
+          const newBatch = shuffleArray(defaultFoodItems);
           return [...remaining, ...newBatch];
         }
         
@@ -181,6 +192,43 @@ export default function PlaySwipeScreen() {
     }, 300);
 
     try {
+      // Award XP for the swipe
+      const oldXP = userData.xp || 0;
+      const xpGained = 10;
+      const newXP = oldXP + xpGained;
+      
+      // Check for level up
+      const { didLevelUp, newLevel } = checkLevelUp(oldXP, newXP);
+      
+      // Update user XP
+      const userRef = doc(db, 'users', user.uid);
+      const userUpdates: any = { xp: newXP };
+      
+      // If leveled up, award hints and update level
+      if (didLevelUp) {
+        const hintsEarned = 1;
+        userUpdates.hints = (userData.hints || 0) + hintsEarned;
+        userUpdates.level = newLevel.level;
+        
+        // Update Firestore first
+        await updateDoc(userRef, userUpdates);
+        
+        // Show level-up celebration
+        router.push({
+          pathname: '/level-up' as any,
+          params: {
+            level: newLevel.level.toString(),
+            title: newLevel.title,
+            hintsEarned: hintsEarned.toString(),
+            isPremium: userData.isPremium ? 'true' : 'false',
+          },
+        });
+      } else {
+        // Just update XP
+        await updateDoc(userRef, userUpdates);
+      }
+      
+      // Record the vote
       const voteRef = doc(db, 'votes', `${user.uid}_${item.id}`);
       await setDoc(voteRef, {
         userId: user.uid,
@@ -227,10 +275,67 @@ export default function PlaySwipeScreen() {
     }
   };
 
-  if (userLoading || !userData) {
+  // Test level-up function - adds 100 XP to trigger level-up
+  const handleTestLevelUp = async () => {
+    if (!user || !userData) return;
+    
+    const oldXP = userData.xp || 0;
+    const newXP = oldXP + 100; // Add 100 XP
+    
+    const { didLevelUp, newLevel } = checkLevelUp(oldXP, newXP);
+    const userRef = doc(db, 'users', user.uid);
+    
+    if (didLevelUp) {
+      const hintsEarned = 1;
+      await updateDoc(userRef, {
+        xp: newXP,
+        hints: (userData.hints || 0) + hintsEarned,
+        level: newLevel.level,
+      });
+      
+      router.push({
+        pathname: '/level-up' as any,
+        params: {
+          level: newLevel.level.toString(),
+          title: newLevel.title,
+          hintsEarned: hintsEarned.toString(),
+          isPremium: userData.isPremium ? 'true' : 'false',
+        },
+      });
+    } else {
+      await updateDoc(userRef, { xp: newXP });
+      alert(`Added 100 XP! Total: ${newXP} XP`);
+    }
+  };
+
+  // Test partner function - simulates having a partner
+  const handleTestPartner = async () => {
+    if (!user || !userData) return;
+    
+    const userRef = doc(db, 'users', user.uid);
+    
+    if (userData.partnerId) {
+      // Remove partner
+      await updateDoc(userRef, {
+        partnerId: null,
+        coupleId: null,
+      });
+      alert('Partner removed!');
+    } else {
+      // Add fake partner (use your own user ID as partner for testing)
+      await updateDoc(userRef, {
+        partnerId: user.uid, // Self as partner for testing
+        coupleId: `test_${user.uid}`,
+      });
+      alert('Test partner added! You can now use hints.');
+    }
+  };
+
+  if (userLoading || !userData || isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={{ color: colors.muted, marginTop: 16 }}>Loading your kitchen...</Text>
       </View>
     );
   }
@@ -242,14 +347,33 @@ export default function PlaySwipeScreen() {
         <Text style={styles.testMatchText}>TEST MATCH</Text>
       </TouchableOpacity>
 
+      {/* Test Level-Up Button - Remove in production */}
+      <TouchableOpacity 
+        style={[styles.testMatchButton, { top: 160 }]} 
+        onPress={handleTestLevelUp}
+      >
+        <Text style={styles.testMatchText}>+100 XP</Text>
+      </TouchableOpacity>
+
+      {/* Test Partner Button - Remove in production */}
+      <TouchableOpacity 
+        style={[styles.testMatchButton, { top: 220 }]} 
+        onPress={handleTestPartner}
+      >
+        <Text style={styles.testMatchText}>{userData.partnerId ? 'REMOVE PARTNER' : 'ADD PARTNER'}</Text>
+      </TouchableOpacity>
+
       <View style={styles.header}>
         <View style={styles.levelBadge}>
           <Text style={styles.levelText}>Level {userData.level || 1}</Text>
         </View>
-        <View style={styles.hintsContainer}>
+        <TouchableOpacity 
+          style={styles.hintsContainer}
+          onPress={() => router.push('/hints-menu' as any)}
+        >
           <Text style={styles.hintIcon}>💡</Text>
-          <Text style={styles.hintText}>{userData.hints || 0}</Text>
-        </View>
+          <Text style={styles.hintText}>{userData.isPremium === true ? '∞' : (userData.hints || 0)}</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.deckContainer}>

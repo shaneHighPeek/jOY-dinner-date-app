@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { useTheme } from '@/theme/ThemeProvider';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { getProgressToNextLevel } from '@/utils/levelSystem';
 
 type Colors = {
   background: string;
@@ -29,6 +30,11 @@ const createStyles = (colors: Colors) => {
       marginBottom: 5,
       letterSpacing: 0.5,
     },
+    xpText: {
+      fontSize: 12,
+      color: colors.muted,
+      marginTop: 4,
+    },
     barBackground: {
       width: '100%',
       height: 10,
@@ -50,31 +56,41 @@ const createStyles = (colors: Colors) => {
 };
 
 interface XPBarProps {
-  level: number;
   xp: number;
-  xpForNextLevel: number;
 }
 
-export const XPBar = ({ level, xp, xpForNextLevel }: XPBarProps) => {
+export const XPBar = ({ xp }: XPBarProps) => {
   const theme = useTheme();
   if (!theme) throw new Error('XPBar must be used within a ThemeProvider');
   const { colors } = theme;
   const styles = createStyles(colors);
   
-  const progress = (xp / xpForNextLevel) * 100;
+  const { currentLevel, nextLevel, progress, xpIntoLevel, xpNeeded } = getProgressToNextLevel(xp);
+  const progressPercent = progress * 100;
 
   return (
     <Animated.View 
       style={styles.container}
       entering={FadeIn.duration(300)}
     >
-      <Text style={styles.levelText}>Level {level}</Text>
+      <Text style={styles.levelText}>
+        {currentLevel.title} - Level {currentLevel.level}
+        {nextLevel && ` → ${nextLevel.level}`}
+      </Text>
       <View style={styles.barBackground}>
         <Animated.View 
-          style={[{ position: 'absolute' }, styles.barProgress(progress)]}
+          style={[{ position: 'absolute' }, styles.barProgress(progressPercent)]}
           entering={FadeIn.duration(600)}
         />
       </View>
+      {nextLevel && (
+        <Text style={styles.xpText}>
+          {Math.floor(xpIntoLevel)} / {xpNeeded} XP
+        </Text>
+      )}
+      {!nextLevel && (
+        <Text style={styles.xpText}>Max Level Reached! 🎉</Text>
+      )}
     </Animated.View>
   );
 };

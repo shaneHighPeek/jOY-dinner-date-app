@@ -12,18 +12,22 @@ export const placeholderImages = {
 };
 
 // Preload first 3 cuisine images for instant display
-export const preloadCuisineImages = () => {
+export const preloadCuisineImages = async () => {
   const firstThreeImages = [
-    placeholderImages['1'], // Italian - Pasta
-    placeholderImages['2'], // Mexican - Tacos
-    placeholderImages['3'], // Japanese - Sushi
+    placeholderImages['1'],  // Italian - Pasta
+    placeholderImages['2'],  // Mexican - Tacos  
+    placeholderImages['56'], // Greek - Gyro (3rd in new order)
   ];
   
-  firstThreeImages.forEach(url => {
-    if (url) {
-      Image.prefetch(url);
-    }
-  });
+  try {
+    await Promise.all(
+      firstThreeImages.map(url => 
+        url ? Image.prefetch(url).catch(() => Promise.resolve()) : Promise.resolve()
+      )
+    );
+  } catch (error) {
+    console.warn('Error preloading cuisine images:', error);
+  }
 };
 
 export * from './food-verified';

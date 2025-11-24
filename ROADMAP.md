@@ -3,7 +3,7 @@
 ## Project Overview
 Building "Dinner Date Without Debate" - a mobile app that helps couples decide what to eat using swipeable cards, shared preferences, and gamification.
 
-**Last Updated**: November 17, 2025
+**Last Updated**: November 24, 2025
 
 ## Tech Stack
 - **Framework**: React Native with Expo
@@ -165,29 +165,106 @@ Building "Dinner Date Without Debate" - a mobile app that helps couples decide w
 
 ---
 
-## Phase 5: Gamification 🔄 IN PROGRESS
+## Phase 5: Gamification 🚀 NEXT PRIORITY
 
-### 5.1 XP System ✅
+This is a major feature that drives engagement and retention. The gamification system includes levels, hints, and streaks that reward users for consistent app usage and create a compelling progression loop.
+
+### 5.1 Level System 🔄 IN PROGRESS
+**Foundation (Completed):**
 - [x] XP bar UI with level display
 - [x] Award XP for swipes (10 XP per swipe)
 - [x] Award XP for matches
 - [x] XP stored in Firestore
-- [ ] **TODO**: Level progression logic
-- [ ] **TODO**: Level-up celebrations
 
-### 5.2 Hints System 🔄 (De-prioritized)
+**Phase 1: Level Progression (2-3 hours)**
+- [ ] Create level calculation function with 20+ levels
+- [ ] Define XP requirements per level (100, 250, 500, 1000, etc.)
+- [ ] Add level titles ("Foodie Newbie", "Taste Explorer", "Flavor Hunter", etc.)
+- [ ] Implement level-up detection logic
+- [ ] Build level-up celebration screen with confetti
+- [ ] Award 1 hint per level-up
+- [ ] Update XP bar to show "Level X → Level Y" progress
+- [ ] Display level title in profile/settings
+
+**Level Structure:**
+```
+Level 1: 0 XP - "Foodie Newbie"
+Level 2: 100 XP - "Taste Explorer"
+Level 3: 250 XP - "Flavor Hunter"
+Level 4: 500 XP - "Culinary Adventurer"
+Level 5: 1000 XP - "Master Chef"
+... up to Level 20+
+```
+
+### 5.2 Hint System 🔄 IN PROGRESS
+**Foundation (Completed):**
 - [x] Hint counter display in UI
 - [x] Initial hint awarded on onboarding completion
 - [x] Hints stored in Firestore
-- [ ] **TODO**: Hint usage UI (To be completed after Core Premium Features)
-- [ ] **TODO**: Reveal partner preferences
-- [ ] **TODO**: Hint earning logic (streaks, purchases)
 
-### 5.3 Streaks
-- [ ] **TODO**: Track daily usage
-- [ ] **TODO**: Streak counter UI
-- [ ] **TODO**: Streak rewards
-- [ ] **TODO**: Streak recovery (hints)
+**Phase 2: Hint Usage (3-4 hours)**
+- [ ] Create hint usage modal/screen
+- [ ] Build "Reveal Partner's Top Cuisine" feature (1 hint)
+- [ ] Build "Show Partner's Recent Likes" feature (2 hints)
+- [ ] Add confirmation dialog before spending hints
+- [ ] Implement hint deduction in Firestore
+- [ ] Create partner preference reveal UI
+- [ ] Add visual feedback when hint is used
+- [ ] Premium users get unlimited hints (no cost display)
+
+**Hint Earning Methods:**
+- [x] Complete onboarding → 1 hint
+- [ ] Level up → 1 hint per level
+- [ ] Daily streak (7 days) → 2 hints
+- [ ] First match → 1 hint
+- [ ] Premium subscription → Unlimited hints
+- [ ] In-app purchase → Buy hint packs (future)
+
+**Hint Usage Options:**
+1. **Reveal Partner's Top Cuisine** (1 hint) - Shows their #1 favorite
+2. **Show Partner's Recent Likes** (2 hints) - Shows last 5 liked items
+3. **Unlock "Surprise Me"** (Free for premium, 1 hint for free users)
+4. **Skip Partner Prompt** (1 hint) - Continue solo play
+
+### 5.3 Streak System 🔄 IN PROGRESS
+**Phase 3: Streak Tracking (2-3 hours)**
+- [ ] Add streak fields to Firestore user schema
+- [ ] Track last active date
+- [ ] Calculate streak on app open
+- [ ] Create streak counter UI component
+- [ ] Award hints for milestones (3, 7, 14, 30 days)
+- [ ] Build streak recovery option (spend 2 hints to restore)
+- [ ] Add streak celebration for milestones
+- [ ] Display longest streak in profile
+
+**Firestore Schema:**
+```typescript
+users/{userId} {
+  currentStreak: number,
+  longestStreak: number,
+  lastActiveDate: string,
+  streakRewards: {
+    "3day": boolean,
+    "7day": boolean,
+    "14day": boolean,
+    "30day": boolean
+  }
+}
+```
+
+**Streak Rewards:**
+- 3 days → 1 hint
+- 7 days → 2 hints
+- 14 days → 3 hints
+- 30 days → 5 hints
+
+### 5.4 Premium Integration 🔄 IN PROGRESS
+**Phase 4: Premium Gamification (1-2 hours)**
+- [ ] Unlimited hints for premium users
+- [ ] Hide hint costs in UI for premium
+- [ ] Premium badge display
+- [ ] Exclusive level titles for premium (Level 10+)
+- [ ] 2x XP multiplier for premium users (optional)
 
 ---
 
@@ -195,26 +272,34 @@ Building "Dinner Date Without Debate" - a mobile app that helps couples decide w
 
 This phase represents a strategic pivot to build the app's killer premium feature: a personal cookbook with a powerful web importer. This system allows users to save recipes from anywhere on the web and add them to the "Dinner Without Debate" game, creating a strong retention loop and fulfilling the promise of choosing home-cooked meals.
 
-### 6.1 Cookbook Foundation (Partially Complete) ✅
+### 6.1 Cookbook Foundation ✅ COMPLETED
 - [x] Basic Cookbook screen structure with premium gating.
 - [x] Dynamic Recipe Detail Page with modern design.
-- [ ] **TODO**: Define the final Recipe schema in Firestore (title, image, ingredients, instructions, sourceUrl, etc.).
-- [ ] **TODO**: Create API endpoints for CRUD (Create, Read, Update, Delete) operations on recipes.
+- [x] Recipe schema defined in Firestore (title, imageUrl, ingredients, instructions, sourceUrl, tags, etc.).
+- [x] Recipe service created for CRUD operations on recipes.
+- [x] RecipeCard component for displaying saved recipes.
 
-### 6.2 The Web Importer (The "Magic" Feature) 🔄
-- [ ] **TODO**: Build a backend parsing service that accepts a URL and extracts structured recipe data (e.g., using Schema.org/Recipe metadata).
-- [ ] **TODO**: Implement native "Share to jOY" functionality on iOS and Android.
-- [ ] **TODO**: Create an "Import & Review" screen where users can verify the parsed recipe data before saving.
-- [ ] **TODO**: Connect the "Save to Cookbook" button on the Recipe Detail page to the import logic.
+### 6.2 The Web Importer (The "Magic" Feature) ✅ COMPLETED
+- [x] Recipe parser service built that accepts a URL and extracts structured recipe data.
+- [x] Import screen created at `/cookbook/import` with URL input.
+- [x] Supported recipe sites displayed (AllRecipes, Food Network, Bon Appetit, etc.).
+- [x] Recipe data parsing and saving to Firestore.
+- [ ] **TODO**: Implement native "Share to jOY" functionality on iOS and Android (future enhancement).
 
-### 6.3 The Cookbook Experience (The "Habit" Feature) 🔄
-- [ ] **TODO**: Enhance the Cookbook screen to be a fully functional recipe library, displaying a grid of the user's saved recipes.
+### 6.3 The Cookbook Experience (The "Habit" Feature) ✅ COMPLETED
+- [x] Cookbook screen displays user's saved recipes in a grid layout.
+- [x] RecipeCard component shows recipe image, title, and tags.
+- [x] Navigation to recipe detail page on card press.
+- [x] Import button navigates to import screen.
 - [ ] **TODO**: Implement "Smart Search" to allow users to search their cookbook by title, ingredients, or tags.
-- [ ] **TODO**: Allow users to manually add and edit their own personal recipes.
+- [ ] **TODO**: Allow users to manually add and edit their own personal recipes (future enhancement).
 
-### 6.4 Game Integration (The Value Prop) 🔄
-- [ ] **TODO**: Update the "Dinner Without Debate" game logic to pull recipes from the user's personal Cookbook.
-- [ ] **TODO**: Ensure user-added recipes appear as swipeable cards in the game deck.
+### 6.4 Game Integration (The Value Prop) ✅ COMPLETED
+- [x] Created `mealService.ts` to merge default foods with user's cookbook recipes.
+- [x] Updated play-swipe screen to use `getUserMeals()` function.
+- [x] User-added recipes now appear as swipeable cards in the game deck.
+- [x] Recipes are shuffled together with default 97 food items.
+- [x] Infinite loop maintained with recipe integration.
 
 ---
 
@@ -315,19 +400,22 @@ This phase represents a strategic pivot to build the app's killer premium featur
 9. **Theme system** with light/dark mode
 10. **Firebase integration** with proper security rules
 11. **Recipe Detail Page** with modern image header design
+12. **The Cookbook with Web Importer** - Full recipe import and management system
+13. **97 Verified Food Images** - High-quality, curated food photography
+14. **Game Integration with User Recipes** - Custom recipes appear in swipe deck
+15. **Flawless Onboarding** - Image preloading for instant first impression
+16. **Infinite Randomized Swiping** - Endless, shuffled food cards
 
 ###  In Progress
-1. **Level progression logic** for XP system
-2. **Hint usage UI** for revealing preferences
-3. **Payment integration** for premium subscriptions
-4. **Testing on multiple platforms**
+1. **Payment integration** for premium subscriptions (RevenueCat/Stripe)
+2. **Testing on multiple platforms** (iOS simulator, Android emulator, physical devices)
 
 ###  Next Priorities
-1. **Build "The Cookbook" with the Web Importer** as the core premium offering (Phase 6).
-2. **Integrate a payment provider** (e.g., RevenueCat) to monetize the Cookbook feature.
-3. **Finalize Gamification** (Level progression, Hint usage) as a secondary priority.
-4. **Conduct thorough testing** on physical devices.
-5. **Prepare all assets for app store submission**.
+1. **Integrate a payment provider** (e.g., RevenueCat) to monetize the Cookbook feature.
+2. **Finalize Gamification** (Level progression, Hint usage) as a secondary priority.
+3. **Conduct thorough testing** on physical devices.
+4. **Prepare all assets for app store submission** (icons, screenshots, descriptions).
+5. **Add Smart Search** to cookbook for finding recipes by title/ingredients/tags.
 
 ---
 
@@ -350,10 +438,11 @@ This phase represents a strategic pivot to build the app's killer premium featur
 
 ## Next Steps (Immediate)
 
-1. **Define Recipe Schema**: Finalize and implement the recipe data structure in `src/types` and prepare Firestore rules.
-2. **Build Backend Parser**: Start development on the URL parsing service.
-3. **Implement "Share to jOY"**: Configure the app for native sharing on iOS and Android.
-4. **Enhance Cookbook UI**: Begin building the full recipe library and search interface.
+1. **Integrate Payment Provider**: Set up RevenueCat or Stripe for premium subscriptions.
+2. **Test on Physical Devices**: Comprehensive testing on iOS and Android devices.
+3. **Add Smart Search**: Implement cookbook search by title, ingredients, or tags.
+4. **Prepare App Store Assets**: Create icons, screenshots, and marketing materials.
+5. **Finalize Gamification**: Complete level progression and hint usage UI.
 
 ---
 

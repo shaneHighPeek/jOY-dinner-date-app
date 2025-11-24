@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { SwipeableCard, SwipeableCardRef } from '@/components/onboarding/SwipeableCard';
@@ -67,15 +67,46 @@ export default function CuisineScreen() {
   const router = useRouter();
   const { addCuisinePreference } = useOnboarding();
   const [cuisines, setCuisines] = useState(allCuisines.slice(0, 8));
+  const [imagesLoaded, setImagesLoaded] = useState(false);
   const swipeableCardRefs = useRef<SwipeableCardRef[]>([]);
   const theme = useTheme();
   if (!theme) return null;
   const { colors } = theme;
   const styles = createStyles(colors);
 
-  // Preload first 3 cuisine images on mount for instant display
+  // Preload first 3 cuisine images and wait for them to load before rendering
   useEffect(() => {
-    preloadCuisineImages();
+    const loadImages = async () => {
+      try {
+        // Get the first 3 cuisine image URLs
+        const firstThreeCuisines = allCuisines.slice(0, 3);
+        const imageUrls = firstThreeCuisines.map(cuisine => {
+          const imageId = cuisine.image.id;
+          // Import the placeholder images to get URLs
+          return require('@/data').placeholderImages[imageId];
+        });
+
+        // Preload all 3 images in parallel
+        await Promise.all(
+          imageUrls.map(url => 
+            Image.prefetch(url).catch(err => {
+              console.warn('Failed to preload image:', err);
+              return Promise.resolve(); // Don't block on individual failures
+            })
+          )
+        );
+
+        // Small delay to ensure images are in cache
+        await new Promise(resolve => setTimeout(resolve, 100));
+        setImagesLoaded(true);
+      } catch (error) {
+        console.error('Error preloading images:', error);
+        // Still show the screen even if preload fails
+        setImagesLoaded(true);
+      }
+    };
+
+    loadImages();
   }, []);
 
   const handleSwipe = (item: (typeof allCuisines)[0], direction: 'left' | 'right') => {
@@ -100,6 +131,16 @@ export default function CuisineScreen() {
       currentCardRef.swipe(direction);
     }
   };
+
+  // Show loading indicator while images are preloading
+  if (!imagesLoaded) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.subtitle, { marginTop: 16 }]}>Preparing your experience...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

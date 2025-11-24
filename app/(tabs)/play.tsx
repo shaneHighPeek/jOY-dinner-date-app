@@ -67,9 +67,6 @@ const createStyles = (colors: Colors) => StyleSheet.create({
   },
 });
 
-// A simple XP model: 100 XP per level
-const getXPForNextLevel = (level: number) => 100 * level;
-
 export default function PlayScreen() {
   const { userData, loading } = useUser();
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -151,11 +148,7 @@ export default function PlayScreen() {
       entering={FadeIn.duration(300)}
     >
       <View style={styles.topContainer}>
-        <XPBar
-          level={userData.level}
-          xp={userData.xp}
-          xpForNextLevel={getXPForNextLevel(userData.level)}
-        />
+        <XPBar xp={userData.xp || 0} />
       </View>
       <View style={styles.deckContainer}>
         <SwipeDeck />

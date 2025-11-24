@@ -102,12 +102,12 @@ export const foodItems = [
 export const cuisines = [
   { id: 'cuisine-1', name: 'Italian', emoji: '🇮🇹', caption: 'Pasta, pizza, and amore!', image: { id: '1', hint: 'pasta' } },
   { id: 'cuisine-2', name: 'Mexican', emoji: '🇲🇽', caption: 'Tacos, spice, and everything nice.', image: { id: '2', hint: 'tacos' } },
+  { id: 'cuisine-12', name: 'Greek', emoji: '🇬🇷', caption: 'Gyros, salads, and Mediterranean magic.', image: { id: '56', hint: 'gyro sandwich' } },
   { id: 'cuisine-3', name: 'Japanese', emoji: '🇯🇵', caption: 'Sushi, ramen, and zen flavors.', image: { id: '3', hint: 'sushi' } },
-  { id: 'cuisine-4', name: 'Chinese', emoji: '🇨🇳', caption: 'A world of flavor in every bite.', image: { id: '6', hint: 'dumplings' } },
+  { id: 'cuisine-11', name: 'Spanish', emoji: '🇪🇸', caption: 'Tapas, paella, and Spanish sunshine.', image: { id: '51', hint: 'spanish tapas' } },
   { id: 'cuisine-5', name: 'Indian', emoji: '🇮🇳', caption: 'Curries, spices, and a feast for the senses.', image: { id: '4', hint: 'curry' } },
-  { id: 'cuisine-6', name: 'Thai', emoji: '🇹🇭', caption: 'Sweet, sour, salty, and spicy harmony.', image: { id: '5', hint: 'thai' } },
-  { id: 'cuisine-7', name: 'Korean', emoji: '🇰🇷', caption: 'From BBQ to Bibimbap, a flavor adventure.', image: { id: '31', hint: 'korean-bbq' } },
-  { id: 'cuisine-8', name: 'Vietnamese', emoji: '🇻🇳', caption: 'Fresh, fragrant, and fantastic.', image: { id: '36', hint: 'pho' } },
-  { id: 'cuisine-9', name: 'American', emoji: '🇺🇸', caption: 'Burgers, fries, and comfort classics.', image: { id: '7', hint: 'burger' } },
+  { id: 'cuisine-4', name: 'Chinese', emoji: '🇨🇳', caption: 'A world of flavor in every bite.', image: { id: '6', hint: 'dumplings' } },
   { id: 'cuisine-10', name: 'French', emoji: '🇫🇷', caption: 'Elegant, rich, and oh-so-fancy.', image: { id: '8', hint: 'french' } },
+  { id: 'cuisine-6', name: 'Thai', emoji: '🇹🇭', caption: 'Sweet, sour, salty, and spicy harmony.', image: { id: '5', hint: 'thai' } },
+  { id: 'cuisine-9', name: 'American', emoji: '🇺🇸', caption: 'Burgers, fries, and comfort classics.', image: { id: '7', hint: 'burger' } },
 ];
