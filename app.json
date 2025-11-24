@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Dinner Without Debate",
-    "slug": "dinner-without-debate",
+    "slug": "joy-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.highpeekpro.dinnerwithoutdebate"
+      "bundleIdentifier": "com.highpeekpro.dinnerwithoutdebate",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
