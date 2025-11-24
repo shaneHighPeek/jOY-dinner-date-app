@@ -106,7 +106,13 @@ export default function PlayScreen() {
   return (
     <Animated.View style={styles.hubContainer} entering={FadeIn.duration(300)}>
       <Text style={styles.title}>Solo Mode</Text>
-      <Text style={styles.subtitle}>Plan your next date or find some peace.</Text>
+      <Text style={styles.subtitle}>Connect with your partner or explore solo features.</Text>
+
+      <TouchableOpacity style={styles.hubButton} onPress={() => router.push('/(tabs)/connect' as any)}>
+        <Text style={styles.hubButtonEmoji}>💑</Text>
+        <Text style={styles.hubButtonTitle}>Connect with Partner</Text>
+        <Text style={styles.hubButtonSubtitle}>Link up and start swiping together!</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.hubButton} onPress={() => router.push('/solo/date-planner' as any)}>
         <Text style={styles.hubButtonEmoji}>💌</Text>

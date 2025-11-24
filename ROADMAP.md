@@ -393,6 +393,22 @@ This phase addresses the pre-connection experience, providing value to users bef
 
 ---
 
+## Phase 11: Future Enhancements & Technical Debt
+
+This section tracks important tasks that are not part of the core feature roadmap but are crucial for long-term stability, quality, and data-driven improvements.
+
+### 11.1 Success Metric Tracking
+- [ ] **Implement "Did you go?" response tracking**: When a user taps the 24-hour follow-up notification, present a simple UI to confirm if the date happened. Store responses in Firestore to track real-world success rates. This provides valuable data on how many matches lead to actual dates.
+
+### 11.2 Code Quality & Testing
+- [ ] **Write Unit Tests**: Set up Jest for React Native. Write tests for core utility functions (e.g., `levelService`, `streakService`, `surpriseMeService`). Ensures core logic is reliable and prevents regressions.
+- [ ] **Write Integration Tests**: Set up a testing framework like Detox for end-to-end (E2E) testing. Create tests for critical user flows like onboarding, authentication, and partner connection. Guarantees that major features work together as expected.
+
+### 11.3 Performance Optimization
+- [ ] **Profile and Optimize Swipe Screen**: Use React DevTools Profiler or Flipper to identify performance bottlenecks on the `play-swipe` screen. Analyze re-renders, component complexity, and memory usage. Implement optimizations like memoization (`React.memo`), `useCallback`, and virtualized lists if needed.
+
+---
+
 ## Current Status & Progress
 
 ###  Completed Features
@@ -417,15 +433,38 @@ This phase addresses the pre-connection experience, providing value to users bef
 19. **Complete Gamification System** - Levels, hints, streaks with premium integration
 
 ###  In Progress
-1. **Payment integration** for premium subscriptions (RevenueCat/Stripe)
-2. **Testing on multiple platforms** (iOS simulator, Android emulator, physical devices)
+1. **Unit Tests** - Setting up Jest and writing tests for core utilities (Step 1 of 3)
+2. **Payment integration** - RevenueCat for premium subscriptions (Step 2 of 3)
+3. **Success Tracking** - "Did you go?" response system (Step 3 of 3)
 
-###  Next Priorities
-1. **Integrate a payment provider** (e.g., RevenueCat) to monetize the Cookbook feature.
-2. **Finalize Gamification** (Level progression, Hint usage) as a secondary priority.
-3. **Conduct thorough testing** on physical devices.
-4. **Prepare all assets for app store submission** (icons, screenshots, descriptions).
-5. **Add Smart Search** to cookbook for finding recipes by title/ingredients/tags.
+###  Current Development Plan (Pre-Design Handoff)
+**Goal:** Complete all critical coding tasks before designer returns with final UI assets.
+
+**Step 1: Unit Tests (Foundation)** 🧪
+- Set up Jest for React Native
+- Write tests for `levelService.ts`, `streakService.ts`, `surpriseMeService.ts`
+- Ensure core gamification logic is bulletproof
+- **Status:** NEXT UP
+
+**Step 2: RevenueCat Integration (Monetization)** 💰
+- Install and configure RevenueCat SDK
+- Define subscription products (yearly/monthly)
+- Connect paywall to native purchase flow
+- Handle successful purchases and grant Premium status
+- **Status:** PENDING
+
+**Step 3: Success Tracking (Data)** 📈
+- Update Cloud Function to include matchId in notifications
+- Build "Did you go?" prompt UI
+- Save responses to Firestore
+- Track real-world date success rates
+- **Status:** PENDING
+
+###  Next Priorities (After Design Handoff)
+1. **UI Polish** - Integrate new icons, splash screens, and screenshots from designer
+2. **Conduct thorough testing** on physical devices
+3. **Prepare all assets for app store submission** (descriptions, privacy policy, terms)
+4. **Add Smart Search** to cookbook for finding recipes by title/ingredients/tags
 
 ---
 
