@@ -1,4 +1,4 @@
-# Current Status - jOY App
+# Current Status - Dinner Without Debate App
 
 **Last Updated**: Session with navigation fixes
 **Status**: 🔴 Blocked - Navigation infinite loop being resolved
@@ -8,7 +8,7 @@
 ## What's Working ✅
 
 1. **Firebase Setup**
-   - New Firebase project created (`joy-windsurf-4979a`)
+   - New Firebase project created (`dinner-without-debate`)
    - Anonymous authentication enabled
    - Credentials configured in `firebase.ts`
 
@@ -86,7 +86,7 @@
 3. **Open in web**: Press `w` when Metro is ready
 4. **Test flow**:
    - Click "Sign In Anonymously"
-   - Should see "Welcome to jOY" screen
+   - Should see "Welcome to Dinner Without Debate" screen
    - Click "Get Started"
    - Should navigate to Name & Avatar screen (not crash)
 

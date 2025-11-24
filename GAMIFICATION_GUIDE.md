@@ -8,7 +8,7 @@
 
 ## Overview
 
-The gamification system is the engagement engine of jOY. It creates a compelling progression loop that keeps users coming back daily and provides tangible rewards for their activity.
+The gamification system is the engagement engine of Dinner Without Debate. It creates a compelling progression loop that keeps users coming back daily and provides tangible rewards for their activity.
 
 ### Core Components
 1. **Level System** - XP-based progression with titles and rewards

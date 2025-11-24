@@ -245,7 +245,7 @@ export default function ReviewPromptScreen() {
           style={styles.sectionTitle}
           entering={FadeInDown.duration(800).delay(600)}
         >
-          jOY was made for people like you
+          Dinner Without Debate was made for people like you
         </Animated.Text>
 
         <Animated.View 

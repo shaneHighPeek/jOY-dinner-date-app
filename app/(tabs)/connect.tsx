@@ -151,7 +151,7 @@ const NotConnectedView = () => {
     if (!user) return;
     try {
       await Share.share({
-        message: `Join me on jOY! My invite code is: ${user.uid.substring(0, 8).toUpperCase()}`,
+        message: `Join me on Dinner Without Debate! My invite code is: ${user.uid.substring(0, 8).toUpperCase()}`,
       });
     } catch (error) {
       console.error('Share failed', error);
