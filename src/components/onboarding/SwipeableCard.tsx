@@ -1,5 +1,5 @@
 import React, { useImperativeHandle } from 'react';
-import { Dimensions, Text, StyleSheet, ViewStyle, ImageBackground, View } from 'react-native';
+import { Dimensions, Text, StyleSheet, View, ImageBackground } from 'react-native';
 import { placeholderImages } from '@/data';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';

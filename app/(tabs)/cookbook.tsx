@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { Text, View, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { Paywall } from '@/components/premium/Paywall';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getUserRecipes } from '@/services/recipeService';
 import { Recipe } from '@/types/recipe';
 import { RecipeCard } from '@/components/cookbook/RecipeCard';
+import { Ionicons } from '@expo/vector-icons';
 
 type Colors = {
   background: string;
@@ -26,12 +27,26 @@ const createStyles = (colors: Colors) => StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
+  },
   title: {
     fontSize: 32,
     color: colors.text,
     fontWeight: 'bold',
-    padding: 20,
-    paddingTop: 60,
+  },
+  importButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   contentContainer: {
     flex: 1,
@@ -110,7 +125,15 @@ export default function CookbookScreen() {
       style={styles.container}
       entering={FadeIn.duration(300)}
     >
-      <Text style={styles.title}>My Cookbook</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>My Cookbook</Text>
+        <TouchableOpacity 
+          style={styles.importButton}
+          onPress={() => router.push('/cookbook/import')}
+        >
+          <Ionicons name="add" size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
       <View style={styles.contentContainer}>
         {renderContent()}
       </View>

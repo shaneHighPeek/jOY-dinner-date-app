@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -124,15 +124,30 @@ const createStyles = (colors: Colors) => StyleSheet.create({
   },
 });
 
+// Shuffle array helper function
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 export default function PlaySwipeScreen() {
   const { vibe } = useLocalSearchParams<{ vibe: string }>();
   const theme = useTheme();
   const { userData, loading: userLoading } = useUser();
   const { user } = useAuth();
   const router = useRouter();
-  const [foodItems, setFoodItems] = useState(initialFoodItems);
+  const [foodItems, setFoodItems] = useState<typeof initialFoodItems>([]);
   const [swipeCount, setSwipeCount] = useState(0);
   const swipeableCardRefs = useRef<Array<{ swipe: (direction: 'left' | 'right') => void } | null>>([]);
+
+  // Initialize with shuffled food items
+  useEffect(() => {
+    setFoodItems(shuffleArray(initialFoodItems));
+  }, []);
 
   if (!theme) throw new Error('PlaySwipeScreen must be used within a ThemeProvider');
   const { colors } = theme;
@@ -152,7 +167,17 @@ export default function PlaySwipeScreen() {
     }
 
     setTimeout(() => {
-      setFoodItems(prev => prev.filter(i => i.id !== item.id));
+      setFoodItems(prev => {
+        const remaining = prev.filter(i => i.id !== item.id);
+        
+        // If running low (less than 10 items), add more shuffled items
+        if (remaining.length < 10) {
+          const newBatch = shuffleArray(initialFoodItems);
+          return [...remaining, ...newBatch];
+        }
+        
+        return remaining;
+      });
     }, 300);
 
     try {

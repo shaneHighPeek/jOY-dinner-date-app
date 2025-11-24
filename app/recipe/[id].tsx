@@ -1,34 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, StatusBar, ScrollView, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, StatusBar, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-// Mock data for now
-const getMockRecipe = (id: string) => ({
-  id,
-  name: 'Spaghetti Carbonara',
-  imageUrl: 'https://www.allrecipes.com/thmb/b2gN3fUvX3422m5GTgs_e-A-A34=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/11973-spaghetti-carbonara-ii-DDMFS-4x3-6ede85b6d340454e932bfe2d31557548.jpg',
-  prepTime: '10 mins',
-  cookTime: '15 mins',
-  servings: '4',
-  ingredients: [
-    '1 pound spaghetti',
-    '2 large eggs',
-    '1/2 cup grated Parmesan cheese',
-    '4 slices bacon, diced',
-    '4 cloves garlic, minced',
-    'Salt and black pepper to taste',
-  ],
-  instructions: [
-    'Bring a large pot of lightly salted water to a boil. Cook spaghetti in the boiling water, stirring occasionally until cooked through but firm to the bite, about 12 minutes. Drain and transfer to a large bowl.',
-    'While the spaghetti is cooking, place eggs and Parmesan cheese in a small bowl. Whisk well.',
-    'Cook bacon in a large skillet over medium-high heat until evenly browned, about 10 minutes. Drain bacon on paper towels, reserving 2 tablespoons of grease in the skillet.',
-    'Cook and stir garlic in the reserved bacon grease over medium heat until fragrant, about 1 minute. Add to the bowl with the spaghetti.',
-    'Pour egg mixture over the hot spaghetti and toss to coat. The heat from the pasta will cook the eggs. Season with salt and pepper. Serve immediately.',
-  ],
-});
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Recipe } from '@/types/recipe';
 
 const HEADER_HEIGHT = 350;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -38,8 +16,50 @@ export default function RecipeDetailScreen() {
   const { colors, isDarkMode } = useTheme()!;
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const recipe = getMockRecipe(id as string);
+  useEffect(() => {
+    const fetchRecipe = async () => {
+      if (!id) return;
+      
+      try {
+        const recipeDoc = await getDoc(doc(db, 'recipes', id as string));
+        if (recipeDoc.exists()) {
+          setRecipe({ id: recipeDoc.id, ...recipeDoc.data() } as Recipe);
+        } else {
+          setError('Recipe not found');
+        }
+      } catch (err) {
+        console.error('Error fetching recipe:', err);
+        setError('Failed to load recipe');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecipe();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (error || !recipe) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+        <Text style={{ color: colors.text, fontSize: 18, marginBottom: 20 }}>{error || 'Recipe not found'}</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ padding: 12, backgroundColor: colors.primary, borderRadius: 8 }}>
+          <Text style={{ color: 'white', fontWeight: '600' }}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -58,27 +78,37 @@ export default function RecipeDetailScreen() {
           />
           <View style={[styles.imageForeground, { backgroundColor: 'rgba(0,0,0,0.3)' }]} />
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>{recipe.name}</Text>
+            <Text style={styles.title}>{recipe.title}</Text>
           </View>
         </View>
 
         <View style={styles.contentContainer}>
           <View style={styles.detailsRow}>
-            <Text style={[styles.detailItem, { color: colors.muted }]}>Prep: {recipe.prepTime}</Text>
-            <Text style={[styles.detailItem, { color: colors.muted }]}>Cook: {recipe.cookTime}</Text>
-            <Text style={[styles.detailItem, { color: colors.muted }]}>Serves: {recipe.servings}</Text>
+            {recipe.prepTime && <Text style={[styles.detailItem, { color: colors.muted }]}>Prep: {recipe.prepTime}</Text>}
+            {recipe.cookTime && <Text style={[styles.detailItem, { color: colors.muted }]}>Cook: {recipe.cookTime}</Text>}
+            {recipe.servings && <Text style={[styles.detailItem, { color: colors.muted }]}>Serves: {recipe.servings}</Text>}
           </View>
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Ingredients</Text>
-          {recipe.ingredients.map((item, index) => (
-            <Text key={index} style={[styles.listItem, { color: colors.text }]}>• {item}</Text>
+          {recipe.ingredients.map((group, groupIndex) => (
+            <View key={groupIndex}>
+              {group.group && <Text style={[styles.groupTitle, { color: colors.text }]}>{group.group}</Text>}
+              {group.items.map((item, index) => (
+                <Text key={index} style={[styles.listItem, { color: colors.text }]}>• {item}</Text>
+              ))}
+            </View>
           ))}
 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Instructions</Text>
-          {recipe.instructions.map((item, index) => (
-            <Text key={index} style={[styles.instructionItem, { color: colors.text }]}>
-              <Text style={{ fontWeight: 'bold' }}>Step {index + 1}:</Text> {item}
-            </Text>
+          {recipe.instructions.map((group, groupIndex) => (
+            <View key={groupIndex}>
+              {group.group && <Text style={[styles.groupTitle, { color: colors.text }]}>{group.group}</Text>}
+              {group.items.map((item, index) => (
+                <Text key={index} style={[styles.instructionItem, { color: colors.text }]}>
+                  <Text style={{ fontWeight: 'bold' }}>Step {index + 1}:</Text> {item}
+                </Text>
+              ))}
+            </View>
           ))}
         </View>
       </ScrollView>
@@ -98,8 +128,11 @@ export default function RecipeDetailScreen() {
         }]} 
         entering={FadeIn.duration(800).delay(800)}
       >
-        <TouchableOpacity style={[styles.button, { backgroundColor: colors.primary }]}>
-          <Text style={styles.buttonText}>Save to Cookbook</Text>
+        <TouchableOpacity 
+          style={[styles.button, { backgroundColor: colors.muted }]}
+          disabled
+        >
+          <Text style={styles.buttonText}>Already in Cookbook</Text>
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -157,6 +190,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 20,
     marginBottom: 10,
+  },
+  groupTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 12,
+    marginBottom: 8,
   },
   listItem: {
     fontSize: 16,

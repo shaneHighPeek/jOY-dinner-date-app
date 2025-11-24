@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { SwipeableCard, SwipeableCardRef } from '@/components/onboarding/SwipeableCard';
-import { cuisines as allCuisines } from '@/data';
+import { cuisines as allCuisines, preloadCuisineImages } from '@/data';
 import Animated, { FadeIn, FadeInUp, FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -72,6 +72,11 @@ export default function CuisineScreen() {
   if (!theme) return null;
   const { colors } = theme;
   const styles = createStyles(colors);
+
+  // Preload first 3 cuisine images on mount for instant display
+  useEffect(() => {
+    preloadCuisineImages();
+  }, []);
 
   const handleSwipe = (item: (typeof allCuisines)[0], direction: 'left' | 'right') => {
     if (direction === 'right') {
