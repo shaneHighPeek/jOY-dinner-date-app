@@ -437,13 +437,8 @@ export default function PlaySwipeScreen() {
       </TouchableOpacity>
 
       <View style={styles.header}>
-        <View style={styles.levelBadge}>
-          <Text style={styles.levelText}>
-            Level {userData.level || 1}
-            {userData.isPremium === true && ' 👑'}
-          </Text>
-        </View>
-        <StreakBadge streak={userData.currentStreak || 0} isPremium={userData.isPremium === true} />
+        {/* This space is intentionally left blank to push hints to the right */}
+        <View style={{ flex: 1 }} />
         <TouchableOpacity 
           style={styles.hintsContainer}
           onPress={() => router.push('/hints-menu' as any)}

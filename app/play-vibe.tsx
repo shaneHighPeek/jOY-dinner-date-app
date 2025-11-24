@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
+import { useUser } from '@/hooks/useUser';
+import { StreakBadge } from '@/components/play/StreakBadge';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 
 const vibes = [
@@ -31,6 +33,12 @@ const createStyles = (colors: Colors) => StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 48,
+  },
+  streakContainer: {
+    position: 'absolute',
+    top: 60,
+    right: 24,
+    zIndex: 1,
   },
   icon: {
     fontSize: 64,
@@ -118,6 +126,7 @@ export default function PlayVibeScreen() {
   const [selectedVibe, setSelectedVibe] = useState<string | null>(null);
   const router = useRouter();
   const theme = useTheme();
+  const { userData } = useUser();
   
   if (!theme) throw new Error('PlayVibeScreen must be used within a ThemeProvider');
   const { colors } = theme;
@@ -134,6 +143,11 @@ export default function PlayVibeScreen() {
 
   return (
     <Animated.View style={styles.container} entering={FadeIn.duration(500)}>
+      {userData && (
+        <Animated.View style={styles.streakContainer} entering={FadeIn.duration(500).delay(400)}>
+          <StreakBadge streak={userData.currentStreak || 0} isPremium={userData.isPremium === true} />
+        </Animated.View>
+      )}
       <Animated.View style={styles.header} entering={FadeInUp.duration(500).delay(200)}>
         <Text style={styles.icon}>🎉</Text>
         <Text style={styles.title}>What's the vibe?</Text>

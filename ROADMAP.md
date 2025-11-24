@@ -163,94 +163,69 @@ Building "Dinner Date Without Debate" - a mobile app that helps couples decide w
 - [x] Mobile-optimized layout (no scrolling needed)
 - [x] Buyer's remorse reduction through social proof
 
+### 4.4 Push Notification System ✅
+- [x] Expo Notifications integration
+- [x] Permission request in connection success flow
+- [x] Push token registration to Firestore
+- [x] Firebase Cloud Function for post-match follow-ups
+- [x] 24-hour delayed notification: "Did you go?"
+- [x] Deployed to Firebase (us-central1)
+- [x] Container cleanup policy configured (7-day retention)
+
 ---
 
-## Phase 5: Gamification 🚀 NEXT PRIORITY
+## Phase 5: Gamification ✅ COMPLETED
 
 This is a major feature that drives engagement and retention. The gamification system includes levels, hints, and streaks that reward users for consistent app usage and create a compelling progression loop.
 
-### 5.1 Level System 🔄 IN PROGRESS
+### 5.1 Level System ✅
 **Foundation (Completed):**
 - [x] XP bar UI with level display
 - [x] Award XP for swipes (10 XP per swipe)
 - [x] Award XP for matches
 - [x] XP stored in Firestore
 
-**Phase 1: Level Progression (2-3 hours)**
-- [ ] Create level calculation function with 20+ levels
-- [ ] Define XP requirements per level (100, 250, 500, 1000, etc.)
-- [ ] Add level titles ("Foodie Newbie", "Taste Explorer", "Flavor Hunter", etc.)
-- [ ] Implement level-up detection logic
-- [ ] Build level-up celebration screen with confetti
-- [ ] Award 1 hint per level-up
-- [ ] Update XP bar to show "Level X → Level Y" progress
-- [ ] Display level title in profile/settings
+**Phase 1: Level Progression (Completed)**
+- [x] Create level calculation function with 20+ levels
+- [x] Define XP requirements per level
+- [x] Add level titles ("Foodie Newbie", "Taste Explorer", "Flavor Hunter", etc.)
+- [x] Implement level-up detection logic
+- [x] Build level-up celebration screen with confetti
+- [x] Award 1 hint per level-up
+- [x] Update XP bar to show "Level X → Level Y" progress
+- [x] Display level title in profile/settings
 
-**Level Structure:**
-```
-Level 1: 0 XP - "Foodie Newbie"
-Level 2: 100 XP - "Taste Explorer"
-Level 3: 250 XP - "Flavor Hunter"
-Level 4: 500 XP - "Culinary Adventurer"
-Level 5: 1000 XP - "Master Chef"
-... up to Level 20+
-```
-
-### 5.2 Hint System 🔄 IN PROGRESS
+### 5.2 Hint System ✅
 **Foundation (Completed):**
 - [x] Hint counter display in UI
 - [x] Initial hint awarded on onboarding completion
 - [x] Hints stored in Firestore
 
-**Phase 2: Hint Usage (3-4 hours)**
-- [ ] Create hint usage modal/screen
-- [ ] Build "Reveal Partner's Top Cuisine" feature (1 hint)
-- [ ] Build "Show Partner's Recent Likes" feature (2 hints)
-- [ ] Add confirmation dialog before spending hints
-- [ ] Implement hint deduction in Firestore
-- [ ] Create partner preference reveal UI
-- [ ] Add visual feedback when hint is used
-- [ ] Premium users get unlimited hints (no cost display)
+**Phase 2: Hint Usage (Completed)**
+- [x] Create hint usage modal/screen
+- [x] Build "Reveal Partner's Top Cuisine" feature (1 hint)
+- [x] Build "Show Partner's Recent Likes" feature (2 hints)
+- [x] Add confirmation dialog before spending hints
+- [x] Implement hint deduction in Firestore
+- [x] Create partner preference reveal UI with empty states
+- [x] Add visual feedback when hint is used
+- [x] Premium users get unlimited hints (no cost display)
 
 **Hint Earning Methods:**
 - [x] Complete onboarding → 1 hint
-- [ ] Level up → 1 hint per level
-- [ ] Daily streak (7 days) → 2 hints
-- [ ] First match → 1 hint
-- [ ] Premium subscription → Unlimited hints
-- [ ] In-app purchase → Buy hint packs (future)
+- [x] Level up → 1 hint per level
+- [x] Daily streak milestones → 1-5 hints
+- [x] Premium subscription → Unlimited hints
 
-**Hint Usage Options:**
-1. **Reveal Partner's Top Cuisine** (1 hint) - Shows their #1 favorite
-2. **Show Partner's Recent Likes** (2 hints) - Shows last 5 liked items
-3. **Unlock "Surprise Me"** (Free for premium, 1 hint for free users)
-4. **Skip Partner Prompt** (1 hint) - Continue solo play
-
-### 5.3 Streak System 🔄 IN PROGRESS
-**Phase 3: Streak Tracking (2-3 hours)**
-- [ ] Add streak fields to Firestore user schema
-- [ ] Track last active date
-- [ ] Calculate streak on app open
-- [ ] Create streak counter UI component
-- [ ] Award hints for milestones (3, 7, 14, 30 days)
-- [ ] Build streak recovery option (spend 2 hints to restore)
-- [ ] Add streak celebration for milestones
-- [ ] Display longest streak in profile
-
-**Firestore Schema:**
-```typescript
-users/{userId} {
-  currentStreak: number,
-  longestStreak: number,
-  lastActiveDate: string,
-  streakRewards: {
-    "3day": boolean,
-    "7day": boolean,
-    "14day": boolean,
-    "30day": boolean
-  }
-}
-```
+### 5.3 Streak System ✅
+**Phase 3: Streak Tracking (Completed)**
+- [x] Add streak fields to Firestore user schema
+- [x] Track last active date
+- [x] Calculate streak on app open
+- [x] Create streak counter UI component
+- [x] Award hints for milestones (3, 7, 14, 30 days)
+- [x] Add streak celebration for milestones
+- [x] Display longest streak in profile
 
 **Streak Rewards:**
 - 3 days → 1 hint
@@ -258,13 +233,13 @@ users/{userId} {
 - 14 days → 3 hints
 - 30 days → 5 hints
 
-### 5.4 Premium Integration 🔄 IN PROGRESS
-**Phase 4: Premium Gamification (1-2 hours)**
-- [ ] Unlimited hints for premium users
-- [ ] Hide hint costs in UI for premium
-- [ ] Premium badge display
-- [ ] Exclusive level titles for premium (Level 10+)
-- [ ] 2x XP multiplier for premium users (optional)
+### 5.4 Premium Integration ✅
+**Phase 4: Premium Gamification (Completed)**
+- [x] Unlimited hints for premium users
+- [x] Hide hint costs in UI for premium
+- [x] Premium badge display (👑)
+- [x] Exclusive level titles for premium (Level 10+)
+- [x] 2x XP multiplier for premium users
 
 ---
 
@@ -326,6 +301,38 @@ This phase represents a strategic pivot to build the app's killer premium featur
 - [ ] **TODO**: Unlimited hints for premium
 - [ ] **TODO**: Advanced filters
 - [ ] **TODO**: Custom food items
+
+---
+
+## Phase 10: Solo Mode Features ✅ COMPLETED
+
+This phase addresses the pre-connection experience, providing value to users before they have a partner.
+
+### 10.1 Solo Hub ✅
+- [x] Modified Play tab to detect partner status
+- [x] Conditional rendering: Solo Hub vs. Partner Play
+- [x] Two-tile layout for solo options
+- [x] Clean, modern UI with gradients
+
+### 10.2 Date Night Planner ✅
+- [x] Activity input field
+- [x] Date/time picker
+- [x] Notes section
+- [x] Share functionality with invite link
+- [x] "Plan Your Date" screen at `/solo/date-planner`
+
+### 10.3 The Dinner Companion ✅
+- [x] Guided mindfulness experience
+- [x] Gratitude prompts
+- [x] Mindful moment timer (60 seconds)
+- [x] Reflection points
+- [x] Solo version of dinner experience
+- [x] Screen at `/solo/dinner-companion`
+
+### 10.4 UI Simplification ✅
+- [x] Moved Level display from swipe screen to Settings
+- [x] Moved Streak badge from swipe screen to Vibe screen
+- [x] Cleaner, less cluttered swipe interface
 
 ---
 
@@ -405,6 +412,9 @@ This phase represents a strategic pivot to build the app's killer premium featur
 14. **Game Integration with User Recipes** - Custom recipes appear in swipe deck
 15. **Flawless Onboarding** - Image preloading for instant first impression
 16. **Infinite Randomized Swiping** - Endless, shuffled food cards
+17. **Push Notification System** - Post-match follow-up notifications to reduce silent churn
+18. **Solo Mode** - Date Night Planner and Dinner Companion for users without partners
+19. **Complete Gamification System** - Levels, hints, streaks with premium integration
 
 ###  In Progress
 1. **Payment integration** for premium subscriptions (RevenueCat/Stripe)
@@ -520,6 +530,10 @@ This phase represents a strategic pivot to build the app's killer premium featur
 - React Native Confetti Cannon: ^1.5.2
 
 ### Test Buttons (Remove Before Production)
-- **TEST MATCH** - On play-swipe screen (top-right)
-- **TEST REVIEW** - On match screen (top-right)
-- **TEST CONNECTION** - On connect screen (top-right)
+- **TEST MATCH** - On play-swipe screen
+- **TEST REVIEW** - On match screen
+- **TEST CONNECTION** - On connect screen
+- **+100 XP** - On play-swipe screen (tests level-ups)
+- **ADD PARTNER** - On play-swipe screen (tests hint system)
+- **+1 DAY STREAK** - On play-swipe screen (tests streak milestones)
+- **ENABLE PREMIUM** - On play-swipe screen (tests premium features)

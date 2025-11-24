@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
+import { useAuth } from '@/hooks/useAuth';
+import { NotificationService } from '@/services/notificationService';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 type Colors = {
@@ -108,16 +110,28 @@ export default function ConnectionSuccessScreen() {
   const [step, setStep] = useState(1);
   const router = useRouter();
   const theme = useTheme();
+  const { user } = useAuth();
   
   if (!theme) throw new Error('ConnectionSuccessScreen must be used within a ThemeProvider');
   const { colors } = theme;
   const styles = createStyles(colors);
 
+  const handleAllowNotifications = async () => {
+    if (user) {
+      await NotificationService.registerForPushNotificationsAsync(user.uid);
+    }
+    // Move to the next step regardless of permission status
+    setStep(step + 1);
+  };
+
+  const handleDontAllowNotifications = () => {
+    setStep(step + 1);
+  };
+
   const handleContinue = () => {
     if (step < 3) {
       setStep(step + 1);
     } else {
-      // Navigate back to main app
       router.replace('/(tabs)/play');
     }
   };
@@ -209,13 +223,13 @@ export default function ConnectionSuccessScreen() {
       >
         <TouchableOpacity 
           style={styles.button}
-          onPress={handleContinue}
+          onPress={handleAllowNotifications}
         >
           <Text style={styles.buttonText}>Allow</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.button, { backgroundColor: 'transparent', borderWidth: 2, borderColor: colors.border }]}
-          onPress={handleContinue}
+          onPress={handleDontAllowNotifications}
         >
           <Text style={[styles.buttonText, { color: colors.text }]}>Don't Allow</Text>
         </TouchableOpacity>

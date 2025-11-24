@@ -1,5 +1,7 @@
 import { Text, View, Switch, StyleSheet } from 'react-native';
 import { useTheme } from '@/theme/ThemeProvider';
+import { useUser } from '@/hooks/useUser';
+import { XPBar } from '@/components/play/XPBar';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 type Colors = {
@@ -42,7 +44,8 @@ const createStyles = (colors: Colors) => StyleSheet.create({
 
 export default function SettingsScreen() {
   const theme = useTheme();
-  if (!theme) return null;
+  const { userData } = useUser();
+  if (!theme || !userData) return null;
   const { colors, isDarkMode, toggleTheme } = theme;
   const styles = createStyles(colors);
 
@@ -52,6 +55,8 @@ export default function SettingsScreen() {
       entering={FadeIn.duration(300)}
     >
       <Text style={styles.title}>Settings</Text>
+      <XPBar xp={userData.xp || 0} isPremium={userData.isPremium === true} />
+      <View style={{ height: 24 }} />
       <View style={styles.settingRow}>
         <Text style={styles.settingText}>Dark Mode</Text>
         <Switch
