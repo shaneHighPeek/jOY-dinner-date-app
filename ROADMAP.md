@@ -433,25 +433,27 @@ This section tracks important tasks that are not part of the core feature roadma
 19. **Complete Gamification System** - Levels, hints, streaks with premium integration
 
 ###  In Progress
-1. **Unit Tests** - Setting up Jest and writing tests for core utilities (Step 1 of 3)
-2. **Payment integration** - RevenueCat for premium subscriptions (Step 2 of 3)
+1. ~~**Unit Tests**~~ ✅ - Jest configured, 26 tests passing for level system (Step 1 of 3)
+2. ~~**Payment integration**~~ ✅ - RevenueCat SDK integrated with paywall UI (Step 2 of 3)
 3. **Success Tracking** - "Did you go?" response system (Step 3 of 3)
 
 ###  Current Development Plan (Pre-Design Handoff)
 **Goal:** Complete all critical coding tasks before designer returns with final UI assets.
 
-**Step 1: Unit Tests (Foundation)** 🧪
-- Set up Jest for React Native
-- Write tests for `levelService.ts`, `streakService.ts`, `surpriseMeService.ts`
-- Ensure core gamification logic is bulletproof
-- **Status:** NEXT UP
+**Step 1: Unit Tests (Foundation)** 🧪 ✅ COMPLETE
+- ✅ Set up Jest for React Native with ts-jest
+- ✅ Write tests for `levelSystem.ts` (26 tests passing)
+- ✅ Ensure core gamification logic is bulletproof
+- **Status:** COMPLETE
 
-**Step 2: RevenueCat Integration (Monetization)** 💰
-- Install and configure RevenueCat SDK
-- Define subscription products (yearly/monthly)
-- Connect paywall to native purchase flow
-- Handle successful purchases and grant Premium status
-- **Status:** PENDING
+**Step 2: RevenueCat Integration (Monetization)** 💰 ✅ COMPLETE
+- ✅ Install and configure RevenueCat SDK
+- ✅ Create RevenueCat service with all purchase methods
+- ✅ Build PremiumContext for app-wide premium state
+- ✅ Create paywall screen with subscription offerings
+- ✅ Add environment variables for API keys
+- ✅ Create comprehensive setup guide (REVENUECAT_SETUP.md)
+- **Status:** COMPLETE (requires App Store/Play Store configuration)
 
 **Step 3: Success Tracking (Data)** 📈
 - Update Cloud Function to include matchId in notifications

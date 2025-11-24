@@ -9,6 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import { PremiumProvider } from '@/contexts/PremiumContext';
 import { useUser } from '@/hooks/useUser';
 import { calculateStreakUpdate, STREAK_REWARDS } from '@/utils/streakSystem';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -142,7 +143,9 @@ export default function RootLayout() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <ThemeProvider>
           <AuthProvider>
-            <RootNavigator />
+            <PremiumProvider>
+              <RootNavigator />
+            </PremiumProvider>
           </AuthProvider>
         </ThemeProvider>
       </GestureHandlerRootView>
