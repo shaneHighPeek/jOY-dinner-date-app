@@ -148,7 +148,7 @@ export default function PlayScreen() {
       entering={FadeIn.duration(300)}
     >
       <View style={styles.topContainer}>
-        <XPBar xp={userData.xp || 0} />
+        <XPBar xp={userData.xp || 0} isPremium={userData.isPremium === true} />
       </View>
       <View style={styles.deckContainer}>
         <SwipeDeck />

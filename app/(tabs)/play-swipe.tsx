@@ -10,6 +10,7 @@ import { foodItems as defaultFoodItems } from '@/data';
 import { getUserMeals, MealItem } from '@/services/mealService';
 import { checkLevelUp } from '@/utils/levelSystem';
 import { SwipeableCard } from '@/components/onboarding/SwipeableCard';
+import { StreakBadge } from '@/components/play/StreakBadge';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 type Colors = {
@@ -192,9 +193,10 @@ export default function PlaySwipeScreen() {
     }, 300);
 
     try {
-      // Award XP for the swipe
+      // Award XP for the swipe (2x for premium users)
       const oldXP = userData.xp || 0;
-      const xpGained = 10;
+      const baseXP = 10;
+      const xpGained = userData.isPremium === true ? baseXP * 2 : baseXP;
       const newXP = oldXP + xpGained;
       
       // Check for level up
@@ -331,6 +333,61 @@ export default function PlaySwipeScreen() {
     }
   };
 
+  // Test streak function - advances streak by 1 day
+  const handleTestStreak = async () => {
+    if (!user || !userData) return;
+    
+    const userRef = doc(db, 'users', user.uid);
+    const newStreak = (userData.currentStreak || 0) + 1;
+    
+    // Check if this is a milestone
+    const milestones = [3, 7, 14, 30];
+    const milestone = milestones.find(m => m === newStreak);
+    
+    const updates: any = {
+      currentStreak: newStreak,
+      lastActiveDate: new Date().toISOString().split('T')[0],
+    };
+    
+    if (newStreak > (userData.longestStreak || 0)) {
+      updates.longestStreak = newStreak;
+    }
+    
+    if (milestone) {
+      const hintsEarned = milestone === 3 ? 1 : milestone === 7 ? 2 : milestone === 14 ? 3 : 5;
+      updates.hints = (userData.hints || 0) + hintsEarned;
+      updates[`streakRewards.${milestone}day`] = true;
+      
+      await updateDoc(userRef, updates);
+      
+      router.push({
+        pathname: '/streak-milestone' as any,
+        params: {
+          streak: newStreak.toString(),
+          milestone: milestone.toString(),
+          hintsEarned: hintsEarned.toString(),
+        },
+      });
+    } else {
+      await updateDoc(userRef, updates);
+      alert(`Streak: ${newStreak} days! Keep going!`);
+    }
+  };
+
+  // Test premium function - toggles premium status
+  const handleTestPremium = async () => {
+    if (!user || !userData) return;
+    
+    const userRef = doc(db, 'users', user.uid);
+    const newPremiumStatus = !userData.isPremium;
+    
+    await updateDoc(userRef, {
+      isPremium: newPremiumStatus,
+    });
+    
+    alert(newPremiumStatus ? 'Premium activated! 👑\n- Unlimited hints\n- 2x XP boost\n- Exclusive titles' : 'Premium deactivated');
+  };
+
   if (userLoading || !userData || isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -363,10 +420,30 @@ export default function PlaySwipeScreen() {
         <Text style={styles.testMatchText}>{userData.partnerId ? 'REMOVE PARTNER' : 'ADD PARTNER'}</Text>
       </TouchableOpacity>
 
+      {/* Test Streak Button - Remove in production */}
+      <TouchableOpacity 
+        style={[styles.testMatchButton, { top: 280 }]} 
+        onPress={handleTestStreak}
+      >
+        <Text style={styles.testMatchText}>+1 DAY STREAK</Text>
+      </TouchableOpacity>
+
+      {/* Test Premium Button - Remove in production */}
+      <TouchableOpacity 
+        style={[styles.testMatchButton, { top: 340 }]} 
+        onPress={handleTestPremium}
+      >
+        <Text style={styles.testMatchText}>{userData.isPremium ? 'DISABLE PREMIUM' : 'ENABLE PREMIUM'}</Text>
+      </TouchableOpacity>
+
       <View style={styles.header}>
         <View style={styles.levelBadge}>
-          <Text style={styles.levelText}>Level {userData.level || 1}</Text>
+          <Text style={styles.levelText}>
+            Level {userData.level || 1}
+            {userData.isPremium === true && ' 👑'}
+          </Text>
         </View>
+        <StreakBadge streak={userData.currentStreak || 0} isPremium={userData.isPremium === true} />
         <TouchableOpacity 
           style={styles.hintsContainer}
           onPress={() => router.push('/hints-menu' as any)}

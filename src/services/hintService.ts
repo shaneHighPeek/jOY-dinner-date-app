@@ -14,6 +14,10 @@ export const HintService = {
    */
   async revealTopCuisine(partnerId: string): Promise<string> {
     try {
+      if (!partnerId) {
+        return 'Partner information not found';
+      }
+
       // Query all partner's votes
       const votesRef = collection(db, 'votes');
       const q = query(
@@ -37,24 +41,28 @@ export const HintService = {
         
         // Find the food item
         const foodItem = foodItems.find(item => item.id === itemId);
-        if (foodItem) {
+        if (foodItem && foodItem.cuisine) {
           const cuisine = foodItem.cuisine;
           cuisineCounts[cuisine] = (cuisineCounts[cuisine] || 0) + 1;
         }
       });
       
       // Find top cuisine
-      const topCuisine = Object.entries(cuisineCounts)
-        .sort(([, a], [, b]) => b - a)[0];
+      const entries = Object.entries(cuisineCounts);
+      if (entries.length === 0) {
+        return 'Your partner hasn\'t liked any items yet! 🤷‍♂️';
+      }
       
-      if (!topCuisine) {
+      const topCuisine = entries.sort(([, a], [, b]) => b - a)[0];
+      
+      if (!topCuisine || !topCuisine[0]) {
         return 'Your partner hasn\'t liked any items yet! 🤷‍♂️';
       }
       
       return topCuisine[0]; // Return cuisine name
     } catch (error) {
       console.error('Error revealing top cuisine:', error);
-      throw new Error('Failed to reveal partner\'s top cuisine');
+      return 'Unable to load partner data';
     }
   },
 

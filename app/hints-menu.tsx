@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, Alert, ActivityIndicat
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useUser } from '@/hooks/useUser';
+import { useAuth } from '@/hooks/useAuth';
 import { HintService } from '@/services/hintService';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
@@ -117,6 +118,7 @@ export default function HintsMenuScreen() {
   const router = useRouter();
   const theme = useTheme();
   const { userData } = useUser();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   
   if (!theme) throw new Error('HintsMenuScreen must be used within a ThemeProvider');
@@ -151,9 +153,16 @@ export default function HintsMenuScreen() {
           onPress: async () => {
             setLoading(true);
             try {
+              // Validate user data
+              if (!user || !userData || !userData.partnerId) {
+                Alert.alert('Error', 'Partner information not found.');
+                setLoading(false);
+                return;
+              }
+
               // Spend hints if not premium
               if (!isPremium) {
-                const success = await HintService.spendHints(userData!.uid, cost);
+                const success = await HintService.spendHints(user.uid, cost);
                 if (!success) {
                   Alert.alert('Error', 'Failed to spend hints. Please try again.');
                   setLoading(false);
@@ -162,7 +171,9 @@ export default function HintsMenuScreen() {
               }
 
               // Reveal top cuisine
-              const topCuisine = await HintService.revealTopCuisine(userData!.partnerId!);
+              const topCuisine = await HintService.revealTopCuisine(userData.partnerId);
+              
+              setLoading(false);
               
               // Close this modal first
               router.back();
@@ -173,14 +184,14 @@ export default function HintsMenuScreen() {
                   pathname: '/hint-reveal' as any,
                   params: {
                     type: 'top-cuisine',
-                    data: topCuisine,
+                    data: topCuisine || 'No data available',
                   },
                 });
               }, 300);
             } catch (error) {
-              Alert.alert('Error', 'Failed to reveal partner\'s top cuisine. Please try again.');
-            } finally {
+              console.error('Top cuisine reveal error:', error);
               setLoading(false);
+              Alert.alert('Error', 'Failed to reveal partner\'s top cuisine. Please try again.');
             }
           },
         },
@@ -212,9 +223,16 @@ export default function HintsMenuScreen() {
           onPress: async () => {
             setLoading(true);
             try {
+              // Validate user data
+              if (!user || !userData || !userData.partnerId) {
+                Alert.alert('Error', 'Partner information not found.');
+                setLoading(false);
+                return;
+              }
+
               // Spend hints if not premium
               if (!isPremium) {
-                const success = await HintService.spendHints(userData!.uid, cost);
+                const success = await HintService.spendHints(user.uid, cost);
                 if (!success) {
                   Alert.alert('Error', 'Failed to spend hints. Please try again.');
                   setLoading(false);
@@ -223,7 +241,9 @@ export default function HintsMenuScreen() {
               }
 
               // Reveal recent likes
-              const recentLikes = await HintService.revealRecentLikes(userData!.partnerId!);
+              const recentLikes = await HintService.revealRecentLikes(userData.partnerId);
+              
+              setLoading(false);
               
               // Close this modal first
               router.back();
@@ -234,14 +254,14 @@ export default function HintsMenuScreen() {
                   pathname: '/hint-reveal' as any,
                   params: {
                     type: 'recent-likes',
-                    data: JSON.stringify(recentLikes),
+                    data: JSON.stringify(recentLikes || []),
                   },
                 });
               }, 300);
             } catch (error) {
-              Alert.alert('Error', 'Failed to reveal partner\'s recent likes. Please try again.');
-            } finally {
+              console.error('Recent likes reveal error:', error);
               setLoading(false);
+              Alert.alert('Error', 'Failed to reveal partner\'s recent likes. Please try again.');
             }
           },
         },

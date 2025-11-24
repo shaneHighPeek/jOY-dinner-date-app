@@ -57,9 +57,10 @@ const createStyles = (colors: Colors) => {
 
 interface XPBarProps {
   xp: number;
+  isPremium?: boolean;
 }
 
-export const XPBar = ({ xp }: XPBarProps) => {
+export const XPBar = ({ xp, isPremium = false }: XPBarProps) => {
   const theme = useTheme();
   if (!theme) throw new Error('XPBar must be used within a ThemeProvider');
   const { colors } = theme;
@@ -75,7 +76,9 @@ export const XPBar = ({ xp }: XPBarProps) => {
     >
       <Text style={styles.levelText}>
         {currentLevel.title} - Level {currentLevel.level}
+        {currentLevel.isPremium && ' 👑'}
         {nextLevel && ` → ${nextLevel.level}`}
+        {nextLevel?.isPremium && !isPremium && ' 🔒'}
       </Text>
       <View style={styles.barBackground}>
         <Animated.View 
@@ -86,6 +89,8 @@ export const XPBar = ({ xp }: XPBarProps) => {
       {nextLevel && (
         <Text style={styles.xpText}>
           {Math.floor(xpIntoLevel)} / {xpNeeded} XP
+          {isPremium && ' (2x Premium Boost!)'}
+          {nextLevel.isPremium && !isPremium && ' - Premium Required'}
         </Text>
       )}
       {!nextLevel && (

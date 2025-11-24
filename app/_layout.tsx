@@ -9,6 +9,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import { useUser } from '@/hooks/useUser';
+import { calculateStreakUpdate, STREAK_REWARDS } from '@/utils/streakSystem';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export const unstable_settings = {
   initialRouteName: 'welcome',
@@ -17,8 +21,69 @@ export const unstable_settings = {
 function RootNavigator() {
   const { isDarkMode } = useTheme() || {};
   const { user, onboardingComplete, loading } = useAuth();
+  const { userData } = useUser();
   const segments = useSegments();
   const router = useRouter();
+
+  // Check and update streak on app open
+  useEffect(() => {
+    if (!user || !userData) return;
+
+    const checkStreak = async () => {
+      try {
+        const streakUpdate = calculateStreakUpdate(
+          userData.lastActiveDate || null,
+          userData.currentStreak || 0,
+          userData.streakRewards || {
+            '3day': false,
+            '7day': false,
+            '14day': false,
+            '30day': false,
+          }
+        );
+
+        if (!streakUpdate.shouldUpdate) return;
+
+        const userRef = doc(db, 'users', user.uid);
+        const updates: any = {
+          currentStreak: streakUpdate.newStreak,
+          lastActiveDate: new Date().toISOString().split('T')[0],
+        };
+
+        // Update longest streak if needed
+        if (streakUpdate.newStreak > (userData.longestStreak || 0)) {
+          updates.longestStreak = streakUpdate.newStreak;
+        }
+
+        // Award hints for milestone
+        if (streakUpdate.milestoneReached && streakUpdate.hintsEarned) {
+          updates.hints = (userData.hints || 0) + streakUpdate.hintsEarned;
+          
+          // Mark milestone as claimed
+          const milestoneKey = `${streakUpdate.milestoneReached}day`;
+          updates[`streakRewards.${milestoneKey}`] = true;
+
+          // Show celebration
+          setTimeout(() => {
+            router.push({
+              pathname: '/streak-milestone' as any,
+              params: {
+                streak: streakUpdate.newStreak.toString(),
+                milestone: streakUpdate.milestoneReached!.toString(),
+                hintsEarned: streakUpdate.hintsEarned!.toString(),
+              },
+            });
+          }, 1000); // Delay to let app load first
+        }
+
+        await updateDoc(userRef, updates);
+      } catch (error) {
+        console.error('Error updating streak:', error);
+      }
+    };
+
+    checkStreak();
+  }, [user, userData?.lastActiveDate]);
 
   useEffect(() => {
     if (loading) return;

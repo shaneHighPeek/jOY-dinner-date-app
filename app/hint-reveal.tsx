@@ -133,7 +133,26 @@ export default function HintRevealScreen() {
 
   // Top Cuisine Reveal
   if (type === 'top-cuisine') {
-    const cuisine = data;
+    const cuisine = data || '';
+    
+    // Check if no data
+    if (!cuisine || cuisine.includes("hasn't liked") || cuisine.includes("haven't")) {
+      return (
+        <View style={styles.container}>
+          <View style={styles.card}>
+            <Text style={styles.emoji}>🤷‍♂️</Text>
+            <Text style={styles.title}>No Data Yet</Text>
+            <Text style={styles.description}>
+              Your partner hasn't liked any items yet. Check back after they've swiped a few cards!
+            </Text>
+            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+              <Text style={styles.continueButtonText}>Got It!</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+    
     const emoji = CUISINE_EMOJIS[cuisine] || '🍽️';
 
     return (
@@ -170,9 +189,12 @@ export default function HintRevealScreen() {
     let likes: Array<{ id: string; name: string; cuisine: string }> = [];
     
     try {
-      likes = JSON.parse(data);
+      if (data) {
+        likes = JSON.parse(data);
+      }
     } catch (error) {
       console.error('Failed to parse likes data:', error);
+      likes = [];
     }
 
     return (
