@@ -42,13 +42,14 @@ export async function parseRecipeFromUrl(url: string): Promise<Omit<Recipe, 'id'
       prepTime: formatTime(recipeData.prepTime),
       cookTime: formatTime(recipeData.cookTime),
       servings: formatServings(recipeData.recipeYield),
-      ingredients: formatIngredients(recipeData.recipeIngredient || []),
-      instructions: formatInstructions(recipeData.recipeInstructions || []),
+      ingredients: formatIngredients(Array.isArray(recipeData.recipeIngredient) ? recipeData.recipeIngredient : []),
+      instructions: formatInstructions(Array.isArray(recipeData.recipeInstructions) ? recipeData.recipeInstructions : []),
       tags: extractTags(recipeData),
     };
   } catch (error: any) {
     console.error('Recipe parsing error:', error);
-    throw new Error(error.message || 'Failed to parse recipe from URL');
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(message);
   }
 }
 
@@ -60,17 +61,19 @@ function extractRecipeFromHtml(html: string): RecipeSchema | null {
     // Look for JSON-LD script tags with Recipe schema
     const jsonLdMatches = html.match(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
     
-    if (!jsonLdMatches) {
+    if (!jsonLdMatches || !Array.isArray(jsonLdMatches)) {
       return null;
     }
     
     for (const match of jsonLdMatches) {
+            if (!match) continue;
       const jsonContent = match.replace(/<script[^>]*>/i, '').replace(/<\/script>/i, '');
       
       try {
         const data = JSON.parse(jsonContent);
         
         // Handle both single objects and arrays
+        if (!data || typeof data !== 'object') continue;
         const recipes = Array.isArray(data) ? data : [data];
         
         for (const item of recipes) {
@@ -80,7 +83,7 @@ function extractRecipeFromHtml(html: string): RecipeSchema | null {
           }
           
           // Check @graph for Recipe
-          if (item['@graph']) {
+          if (Array.isArray(item['@graph'])) {
             const recipe = item['@graph'].find((g: any) => g['@type'] === 'Recipe');
             if (recipe) {
               return recipe;
@@ -184,7 +187,7 @@ function formatIngredients(ingredients: string[]): Array<{ group: string; items:
 function formatInstructions(
   instructions: string[] | Array<{ text: string }> | Array<{ '@type': string; text: string }>
 ): Array<{ group: string; items: string[] }> {
-  if (!instructions || instructions.length === 0) {
+  if (!instructions || !Array.isArray(instructions) || instructions.length === 0) {
     return [{ group: '', items: [] }];
   }
   
@@ -212,7 +215,7 @@ function formatInstructions(
 function extractTags(recipe: RecipeSchema): string[] {
   const tags: string[] = [];
   
-  if (recipe.keywords) {
+  if (typeof recipe.keywords === 'string') {
     // Keywords can be comma-separated
     const keywords = recipe.keywords.split(',').map((k) => k.trim());
     tags.push(...keywords);

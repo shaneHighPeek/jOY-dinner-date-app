@@ -28,8 +28,8 @@ const createStyles = (colors: Colors, window: { width: number; height: number })
     alignItems: 'center',
   },
   logo: {
-    width: 150,
-    height: 150,
+    width: 250,
+    height: 250,
     resizeMode: 'contain',
     marginBottom: 20,
   },
@@ -88,12 +88,6 @@ export default function LoginScreen() {
         entering={FadeIn.duration(1000)}
       >
         <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
-        <Animated.Text 
-          style={styles.title}
-          entering={FadeInDown.duration(1000).delay(600)}
-        >
-          Dinner without Debate
-        </Animated.Text>
         <Animated.View
           entering={FadeInDown.duration(1000).delay(900)}
           style={{ width: '100%' }}

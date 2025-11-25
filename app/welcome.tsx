@@ -20,10 +20,6 @@ const WelcomeScreen = () => {
         <Animated.View entering={FadeIn.duration(1000)} style={styles.logoContainer}>
           <Image source={require('../assets/images/logo.png')} style={styles.logo} />
         </Animated.View>
-
-        <Animated.Text entering={FadeInUp.duration(1000).delay(500)} style={[styles.subtitle, { color: colors.text }]}>
-          Dinner without Debate
-        </Animated.Text>
       </View>
 
       <Animated.View entering={FadeInDown.duration(1000).delay(1000)} style={styles.buttonContainer}>
@@ -52,8 +48,8 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   logo: {
-    width: 150,
-    height: 150,
+    width: 250,
+    height: 250,
     resizeMode: 'contain',
   },
   subtitle: {

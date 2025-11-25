@@ -91,7 +91,7 @@ export default function PaywallScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF6B6B" />
+        <ActivityIndicator size="large" color="#ff3232" />
         <Text style={styles.loadingText}>Loading subscription options...</Text>
       </View>
     );
@@ -172,10 +172,10 @@ export default function PaywallScreen() {
               >
                 <View style={styles.packageHeader}>
                   <Text style={styles.packageTitle}>
-                    {pkg.product.title.replace(/\s*\(.*?\)\s*/g, '')}
+                    {pkg.product.title ? pkg.product.title.replace(/\s*\(.*?\)\s*/g, '') : ''}
                   </Text>
                   {selectedPackage?.identifier === pkg.identifier && (
-                    <Ionicons name="checkmark-circle" size={24} color="#FF6B6B" />
+                    <Ionicons name="checkmark-circle" size={24} color="#ff3232" />
                   )}
                 </View>
                 <Text style={styles.packagePrice}>
@@ -230,7 +230,7 @@ const FeatureItem: React.FC<{ icon: any; title: string; description: string }> =
 }) => (
   <View style={styles.featureItem}>
     <View style={styles.featureIconContainer}>
-      <Ionicons name={icon} size={24} color="#FF6B6B" />
+      <Ionicons name={icon} size={24} color="#ff3232" />
     </View>
     <View style={styles.featureTextContainer}>
       <Text style={styles.featureTitle}>{title}</Text>
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   packageCardSelected: {
-    borderColor: '#FF6B6B',
+    borderColor: '#ff3232',
     backgroundColor: '#FFF5F5',
   },
   packageHeader: {
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   packagePrice: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FF6B6B',
+    color: '#ff3232',
     marginBottom: 8,
   },
   packageDescription: {
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   ctaButton: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: '#ff3232',
     marginHorizontal: 24,
     paddingVertical: 18,
     borderRadius: 12,
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   restoreButtonText: {
-    color: '#FF6B6B',
+    color: '#ff3232',
     fontSize: 16,
     fontWeight: '600',
   },

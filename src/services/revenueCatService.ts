@@ -16,6 +16,14 @@ const REVENUECAT_API_KEY_ANDROID = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KE
  */
 export const initializeRevenueCat = async (userId: string): Promise<void> => {
   try {
+    // Check if API key exists
+    const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
+    
+    if (!apiKey || apiKey.trim() === '') {
+      console.warn('⚠️ RevenueCat API key not configured, skipping initialization');
+      return;
+    }
+
     // Configure SDK
     if (Platform.OS === 'ios') {
       await Purchases.configure({ apiKey: REVENUECAT_API_KEY_IOS, appUserID: userId });
@@ -31,7 +39,7 @@ export const initializeRevenueCat = async (userId: string): Promise<void> => {
     console.log('✅ RevenueCat initialized for user:', userId);
   } catch (error) {
     console.error('❌ Failed to initialize RevenueCat:', error);
-    throw error;
+    // Don't throw - let the app continue without RevenueCat
   }
 };
 
@@ -116,6 +124,13 @@ export const restorePurchases = async (): Promise<{
  */
 export const checkPremiumStatus = async (): Promise<boolean> => {
   try {
+    // Check if RevenueCat is configured
+    const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
+    if (!apiKey || apiKey.trim() === '') {
+      console.warn('⚠️ RevenueCat not configured, returning false for premium status');
+      return false;
+    }
+
     const customerInfo = await Purchases.getCustomerInfo();
     
     // Check if user has the "premium" entitlement active
@@ -134,6 +149,13 @@ export const checkPremiumStatus = async (): Promise<boolean> => {
  */
 export const getCustomerInfo = async (): Promise<CustomerInfo | null> => {
   try {
+    // Check if RevenueCat is configured
+    const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
+    if (!apiKey || apiKey.trim() === '') {
+      console.warn('⚠️ RevenueCat not configured, returning null for customer info');
+      return null;
+    }
+
     const customerInfo = await Purchases.getCustomerInfo();
     return customerInfo;
   } catch (error) {

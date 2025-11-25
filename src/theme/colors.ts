@@ -2,16 +2,16 @@ export const lightColors = {
   background: '#FDFEFE',
   card: '#FFFFFF',
   text: '#17202A',
-  primary: '#E74C3C',
+  primary: '#ff3232',
   accent: '#3498DB',
   border: '#E5E7E9',
 };
 
 export const darkColors = {
-  background: '#17202A',
-  card: '#212F3D',
+  background: '#1A1A1A',
+  card: '#2A2A2A',
   text: '#FDFEFE',
-  primary: '#E74C3C',
+  primary: '#ff3232',
   accent: '#3498DB',
-  border: '#2C3E50',
+  border: '#333333',
 };

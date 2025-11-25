@@ -28,7 +28,10 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [user?.uid]);
 
   const initializeRevenueCat = async () => {
-    if (!user?.uid) return;
+    if (!user?.uid) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
       setIsLoading(true);
@@ -36,6 +39,9 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
       await checkPremiumStatus();
     } catch (error) {
       console.error('Failed to initialize RevenueCat:', error);
+      // Don't throw - just set premium to false and continue
+      setIsPremium(false);
+      setCustomerInfo(null);
     } finally {
       setIsLoading(false);
     }

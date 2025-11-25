@@ -1,22 +1,22 @@
 export const tokens = {
   colors: {
     dark: {
-      background: '#111111',
-      card: '#1A1A1A',
-      primary: '#FF7A8A',
+      background: '#1A1A1A',
+      card: '#2A2A2A',
+      primary: '#ff3232',
       accent: '#FFD6A5',
       text: '#EDEDED',
       muted: '#777777',
       // Additional semantic colors
-      border: '#2A2A2A',
+      border: '#333333',
       overlay: 'rgba(0, 0, 0, 0.5)',
       success: '#6BCB77',
-      error: '#FF6B6B',
+      error: '#ff3232',
     },
     light: {
       background: '#FFF7F2',
       card: '#FFFFFF',
-      primary: '#FF6B81',
+      primary: '#ff3232',
       accent: '#FFB98D',
       text: '#2D2D2D',
       muted: '#888888',
