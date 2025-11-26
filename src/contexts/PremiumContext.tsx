@@ -35,8 +35,10 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     try {
       setIsLoading(true);
-      await RevenueCatService.initializeRevenueCat(user.uid);
-      await checkPremiumStatus();
+      // TEMPORARILY DISABLED FOR CRASH DEBUGGING
+      // await RevenueCatService.initializeRevenueCat(user.uid);
+      // await checkPremiumStatus();
+      console.log('RevenueCat init disabled for debugging');
     } catch (error) {
       console.error('Failed to initialize RevenueCat:', error);
       // Don't throw - just set premium to false and continue

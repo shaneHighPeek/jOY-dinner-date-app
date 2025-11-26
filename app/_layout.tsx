@@ -32,15 +32,19 @@ function RootNavigator() {
 
     const checkStreak = async () => {
       try {
+        // Defensive Programming: Ensure streakRewards is a plain object.
+        // Firestore can sometimes return Map-like objects that cause Hermes to crash on iteration.
+        const safeStreakRewards = userData.streakRewards ? { ...userData.streakRewards } : {
+          '3day': false,
+          '7day': false,
+          '14day': false,
+          '30day': false,
+        };
+
         const streakUpdate = calculateStreakUpdate(
           userData.lastActiveDate || null,
           userData.currentStreak || 0,
-          userData.streakRewards || {
-            '3day': false,
-            '7day': false,
-            '14day': false,
-            '30day': false,
-          }
+          safeStreakRewards
         );
 
         if (!streakUpdate.shouldUpdate) return;

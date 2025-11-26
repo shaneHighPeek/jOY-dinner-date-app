@@ -37,7 +37,6 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/notification-icon.png",
           "color": "#ffffff"
         }
       ],
@@ -51,8 +50,7 @@
             "backgroundColor": "#1A1A1A"
           }
         }
-      ],
-      "expo-build-properties"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
