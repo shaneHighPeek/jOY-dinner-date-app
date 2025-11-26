@@ -17,6 +17,14 @@ service cloud.firestore {
             .hasOnly(['coupleId', 'partnerId', 'partnerName', 'connectedAt', 'isPremium', 'trialEndDate']) &&
           // The requesting user must be setting themselves as the partner
           request.resource.data.partnerId == request.auth.uid
+        ) ||
+        // Allow partner disconnection: current partner can remove connection fields
+        (
+          // Only allow removing connection-related fields
+          resource.data.diff(request.resource.data).affectedKeys()
+            .hasOnly(['coupleId', 'partnerId', 'partnerName', 'connectedAt']) &&
+          // The requesting user must be the current partner
+          resource.data.partnerId == request.auth.uid
         )
       );
     }

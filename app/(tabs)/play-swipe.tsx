@@ -127,14 +127,41 @@ const createStyles = (colors: Colors) => StyleSheet.create({
   },
 });
 
-// Shuffle array helper function
-const shuffleArray = <T,>(array: T[]): T[] => {
+// Seeded random number generator for consistent shuffling between partners
+const seededRandom = (seed: number): (() => number) => {
+  return () => {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    return seed / 0x7fffffff;
+  };
+};
+
+// Convert string to numeric seed
+const stringToSeed = (str: string): number => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash);
+};
+
+// Shuffle array with optional seed for consistent ordering between partners
+const shuffleArray = <T,>(array: T[], seed?: string): T[] => {
   const shuffled = [...array];
+  const random = seed ? seededRandom(stringToSeed(seed)) : Math.random;
+  
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   return shuffled;
+};
+
+// Get today's date as string for daily deck rotation
+const getTodaysSeed = (coupleId: string): string => {
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  return `${coupleId}-${today}`;
 };
 
 export default function PlaySwipeScreen() {
@@ -149,17 +176,28 @@ export default function PlaySwipeScreen() {
   const swipeableCardRefs = useRef<Array<{ swipe: (direction: 'left' | 'right') => void } | null>>([]);
 
   // Fetch all meals (default + custom) and shuffle them
+  // If user has a partner, use seeded shuffle so both see same order
   useEffect(() => {
-    if (user) {
+    if (user && userData !== null) {
       const fetchMeals = async () => {
         setIsLoading(true);
         const allMeals = await getUserMeals(user.uid);
-        setFoodItems(shuffleArray(allMeals));
+        
+        // Use seeded shuffle if user has a partner (coupleId)
+        // This ensures both partners see foods in the same order
+        if (userData?.coupleId) {
+          const seed = getTodaysSeed(userData.coupleId);
+          console.log('Using shared deck with seed:', seed);
+          setFoodItems(shuffleArray(allMeals, seed));
+        } else {
+          // Solo user gets random shuffle
+          setFoodItems(shuffleArray(allMeals));
+        }
         setIsLoading(false);
       };
       fetchMeals();
     }
-  }, [user]);
+  }, [user, userData?.coupleId]);
 
   if (!theme) throw new Error('PlaySwipeScreen must be used within a ThemeProvider');
   const { colors } = theme;
@@ -184,7 +222,9 @@ export default function PlaySwipeScreen() {
         
         // If running low (less than 10 items), add more shuffled default items
         if (remaining.length < 10) {
-          const newBatch = shuffleArray(defaultFoodItems);
+          // Use same seed for partners, random for solo users
+          const seed = userData?.coupleId ? getTodaysSeed(userData.coupleId) + '-refill' : undefined;
+          const newBatch = shuffleArray(defaultFoodItems, seed);
           return [...remaining, ...newBatch];
         }
         

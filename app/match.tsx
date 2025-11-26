@@ -1,4 +1,4 @@
-import { Text, View, TouchableOpacity, StyleSheet, Linking, Platform } from 'react-native';
+import { Text, View, TouchableOpacity, StyleSheet, Linking, Platform, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useEffect, useRef, useState } from 'react';
@@ -201,18 +201,45 @@ export default function MatchScreen() {
     Linking.openURL(url);
   };
 
-  const handleOrderIn = () => {
+  const handleOrderIn = async () => {
     const query = encodeURIComponent(itemName as string || 'food');
-    // Try Uber Eats first, fallback to web search
-    const uberEatsUrl = `ubereats://search?q=${query}`;
-    Linking.canOpenURL(uberEatsUrl).then(supported => {
-      if (supported) {
-        Linking.openURL(uberEatsUrl);
-      } else {
-        // Fallback to web
-        Linking.openURL(`https://www.ubereats.com/search?q=${query}`);
-      }
-    });
+    
+    // Define delivery app options with their URL schemes
+    const deliveryApps = [
+      {
+        name: 'Uber Eats',
+        scheme: `https://www.ubereats.com/search?q=${query}`, // Web URL works better
+        appStoreUrl: 'https://apps.apple.com/app/uber-eats-food-delivery/id1058959277',
+      },
+      {
+        name: 'DoorDash', 
+        scheme: `https://www.doordash.com/search/store/${query}`,
+        appStoreUrl: 'https://apps.apple.com/app/doordash-food-delivery/id719972451',
+      },
+    ];
+
+    // Show action sheet with delivery options
+    const buttons = deliveryApps.map(app => app.name);
+    buttons.push('Cancel');
+
+    Alert.alert(
+      'Order Delivery',
+      `Search for "${itemName}" on:`,
+      [
+        {
+          text: 'Uber Eats',
+          onPress: () => Linking.openURL(`https://www.ubereats.com/search?q=${query}`),
+        },
+        {
+          text: 'DoorDash',
+          onPress: () => Linking.openURL(`https://www.doordash.com/search/store/${query}`),
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ]
+    );
   };
 
   const handleKeepSwiping = () => {

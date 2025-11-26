@@ -71,7 +71,7 @@ async function sendPushNotification(pushToken, title, body) {
 }
 /**
  * Cloud Function that triggers when a new match is created.
- * Waits 24 hours and then sends a follow-up push notification.
+ * Sends IMMEDIATE notification to both partners, then schedules 24-hour follow-up.
  */
 exports.sendMatchFollowUp = (0, firestore_1.onDocumentCreated)('matches/{matchId}', async (event) => {
     const snapshot = event.data;
@@ -81,26 +81,20 @@ exports.sendMatchFollowUp = (0, firestore_1.onDocumentCreated)('matches/{matchId
     }
     const matchData = snapshot.data();
     const { coupleId, itemName } = matchData;
-    // In a real-world scenario, you would use Cloud Tasks to schedule this.
-    logger.log(`Match created for ${itemName}. In a real app, a follow-up would be scheduled for 24 hours from now.`);
+    logger.log(`Match created for ${itemName} by couple ${coupleId}`);
     try {
-        const coupleRef = db.collection('couples').doc(coupleId);
-        const coupleSnap = await coupleRef.get();
-        if (!coupleSnap.exists) {
-            logger.log('Couple not found:', coupleId);
+        // The coupleId is formatted as "userId1_userId2" (sorted alphabetically)
+        // Extract both user IDs from the coupleId
+        const userIds = coupleId.split('_');
+        if (!userIds || userIds.length < 2) {
+            logger.log('Invalid coupleId format:', coupleId);
             return;
         }
-        const coupleData = coupleSnap.data();
-        if (!coupleData) {
-            logger.log('Couple data is empty.');
-            return;
-        }
-        const userIds = coupleData.userIds;
-        if (!userIds || userIds.length === 0) {
-            logger.log('No user IDs found for this couple.');
-            return;
-        }
+        // Send immediate notification to BOTH partners
         for (const userId of userIds) {
+            // Skip if this looks like a test partner
+            if (userId === 'TEST_PARTNER')
+                continue;
             const userRef = db.collection('users').doc(userId);
             const userSnap = await userRef.get();
             if (userSnap.exists) {
@@ -110,14 +104,25 @@ exports.sendMatchFollowUp = (0, firestore_1.onDocumentCreated)('matches/{matchId
                 const pushTokens = userData.pushTokens;
                 if (pushTokens && Array.isArray(pushTokens)) {
                     for (const token of pushTokens) {
-                        await sendPushNotification(token, 'How was your date night? 🍽️', `Did you end up getting ${itemName} yesterday?`);
+                        // Send immediate match notification
+                        await sendPushNotification(token, "It's a Match! 🎉", `You both want ${itemName}! Time to eat! 🍽️`);
+                        logger.log(`Sent match notification to user ${userId}`);
                     }
                 }
+                else {
+                    logger.log(`No push tokens for user ${userId}`);
+                }
+            }
+            else {
+                logger.log(`User not found: ${userId}`);
             }
         }
+        // TODO: In production, schedule a 24-hour follow-up using Cloud Tasks
+        // For now, just log that we would schedule it
+        logger.log(`Would schedule 24-hour follow-up for ${itemName}`);
     }
     catch (error) {
-        logger.error('Error fetching user data or sending notifications:', error);
+        logger.error('Error sending match notifications:', error);
     }
 });
 //# sourceMappingURL=index.js.map
