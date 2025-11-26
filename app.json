@@ -7,11 +7,10 @@
     "icon": "./assets/images/icon.png",
     "scheme": "joyapp",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.highpeekpro.dinnerwithoutdebate",
-      "jsEngine": "jsc",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
