@@ -1,10 +1,24 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow users to read any user document, but only write their own
+    // Allow users to read any user document
+    // Allow users to write their own document
+    // Allow partner connection updates (when setting coupleId, partnerId, partnerName, connectedAt)
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow create, write: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && (
+        // User can always update their own document
+        request.auth.uid == userId ||
+        // Allow partner connection: another user can update specific fields for pairing
+        (
+          // Only allow updating connection-related fields
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['coupleId', 'partnerId', 'partnerName', 'connectedAt', 'isPremium', 'trialEndDate']) &&
+          // The requesting user must be setting themselves as the partner
+          request.resource.data.partnerId == request.auth.uid
+        )
+      );
     }
     
     // Recipes - users can only CRUD their own recipes

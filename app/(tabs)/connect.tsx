@@ -1,12 +1,22 @@
 import { Text, View, TouchableOpacity, TextInput, Share, StyleSheet } from 'react-native';
 import { useUser } from '@/hooks/useUser';
 import { useAuth } from '@/hooks/useAuth';
-import { doc, writeBatch, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, writeBatch, getDoc, serverTimestamp, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+
+// Generate a unique 6-character invite code
+const generateInviteCode = (): string => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed confusing chars like 0, O, 1, I
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
 
 type Colors = {
   background: string;
@@ -141,17 +151,53 @@ const NotConnectedView = () => {
   const { colors } = theme;
   const styles = createStyles(colors);
   const { user } = useAuth();
-  const { userData } = useUser();
+  const { userData, loading: userLoading } = useUser();
   const router = useRouter();
   const [partnerCode, setPartnerCode] = useState('');
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState('');
+  const [myInviteCode, setMyInviteCode] = useState<string>('');
+  const [codeChecked, setCodeChecked] = useState(false);
+
+  // Ensure user has an invite code - only run after userData has loaded
+  useEffect(() => {
+    const ensureInviteCode = async () => {
+      // Wait for user data to load before checking/generating code
+      if (!user || userLoading) return;
+      
+      // If user already has an invite code in their data, use it
+      if (userData?.inviteCode) {
+        setMyInviteCode(userData.inviteCode);
+        setCodeChecked(true);
+        return;
+      }
+
+      // Only generate a new code if we've confirmed userData loaded and has no code
+      if (codeChecked) return; // Prevent multiple generations
+      setCodeChecked(true);
+
+      // Generate and save a new invite code
+      try {
+        const newCode = generateInviteCode();
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, { inviteCode: newCode });
+        setMyInviteCode(newCode);
+        console.log('Generated new invite code:', newCode);
+      } catch (error) {
+        console.error('Failed to generate invite code:', error);
+        // Fallback to UID-based code if we can't save
+        setMyInviteCode(user.uid.substring(0, 6).toUpperCase());
+      }
+    };
+
+    ensureInviteCode();
+  }, [user, userData?.inviteCode, userLoading, codeChecked]);
 
   const handleShare = async () => {
-    if (!user) return;
+    if (!myInviteCode) return;
     try {
       await Share.share({
-        message: `Join me on Dinner Without Debate! My invite code is: ${user.uid.substring(0, 8).toUpperCase()}`,
+        message: `Join me on Dinner Without Debate! My invite code is: ${myInviteCode}`,
       });
     } catch (error) {
       console.error('Share failed', error);
@@ -165,17 +211,28 @@ const NotConnectedView = () => {
     setError('');
 
     try {
-      // Verify partner exists
-      const partnerRef = doc(db, 'users', partnerCode);
-      const partnerSnap = await getDoc(partnerRef);
+      // Query for user with this invite code
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('inviteCode', '==', partnerCode.toUpperCase()));
+      const querySnapshot = await getDocs(q);
 
-      if (!partnerSnap.exists()) {
+      if (querySnapshot.empty) {
         setError('Partner code not found. Please check and try again.');
         setConnecting(false);
         return;
       }
 
-      const partnerData = partnerSnap.data();
+      // Get the partner's document
+      const partnerDoc = querySnapshot.docs[0];
+      const partnerId = partnerDoc.id;
+      const partnerData = partnerDoc.data();
+
+      // Can't connect to yourself
+      if (partnerId === user.uid) {
+        setError("You can't connect with yourself!");
+        setConnecting(false);
+        return;
+      }
 
       // Check if partner is already connected to someone else
       if (partnerData.coupleId && partnerData.coupleId !== '') {
@@ -185,19 +242,20 @@ const NotConnectedView = () => {
       }
 
       // Create couple ID (sorted to ensure consistency)
-      const coupleId = [user.uid, partnerCode].sort().join('_');
+      const coupleId = [user.uid, partnerId].sort().join('_');
       const batch = writeBatch(db);
 
       // Update current user
       const userRef = doc(db, 'users', user.uid);
       batch.update(userRef, {
         coupleId,
-        partnerId: partnerCode,
+        partnerId: partnerId,
         partnerName: partnerData.name || 'Partner',
         connectedAt: serverTimestamp(),
       });
 
       // Update partner
+      const partnerRef = doc(db, 'users', partnerId);
       batch.update(partnerRef, {
         coupleId,
         partnerId: user.uid,
@@ -292,8 +350,8 @@ const NotConnectedView = () => {
           <Text style={styles.tileIcon}>💌</Text>
           <Text style={styles.tileTitle}>Invite Your Partner</Text>
           <Text style={styles.tileSubtitle}>Share your unique code</Text>
-          <Text style={styles.inviteCode}>{user?.uid.substring(0, 8).toUpperCase()}</Text>
-          <TouchableOpacity style={styles.button} onPress={handleShare}>
+          <Text style={styles.inviteCode}>{myInviteCode || '...'}</Text>
+          <TouchableOpacity style={styles.button} onPress={handleShare} disabled={!myInviteCode}>
             <Text style={styles.buttonText}>Share Invite Code</Text>
           </TouchableOpacity>
         </View>
@@ -313,7 +371,7 @@ const NotConnectedView = () => {
               setError('');
             }}
             autoCapitalize="characters"
-            maxLength={8}
+            maxLength={6}
             editable={!connecting}
           />
           {error ? <Text style={styles.errorText}>{error}</Text> : null}

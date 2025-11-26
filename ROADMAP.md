@@ -3,7 +3,7 @@
 ## Project Overview
 Building "Dinner Date Without Debate" - a mobile app that helps couples decide what to eat using swipeable cards, shared preferences, and gamification.
 
-**Last Updated**: November 24, 2025
+**Last Updated**: November 26, 2025
 
 ## Tech Stack
 - **Framework**: React Native with Expo
@@ -487,13 +487,93 @@ This section tracks important tasks that are not part of the core feature roadma
 
 ---
 
-## Next Steps (Immediate)
+## 🔴 CRITICAL BUGS & FIXES (TestFlight Build 22+)
 
-1. **Integrate Payment Provider**: Set up RevenueCat or Stripe for premium subscriptions.
-2. **Test on Physical Devices**: Comprehensive testing on iOS and Android devices.
-3. **Add Smart Search**: Implement cookbook search by title, ingredients, or tags.
-4. **Prepare App Store Assets**: Create icons, screenshots, and marketing materials.
-5. **Finalize Gamification**: Complete level progression and hint usage UI.
+These issues were discovered during real-world testing on November 26, 2025 and need to be addressed before App Store release.
+
+### BUG-001: Partner Connection Not Working ✅ FIXED (Build 22)
+**Problem:** Partner codes weren't connecting users. The code used UID substring as invite code but looked up by document ID.
+**Root Cause:** 
+1. Firestore rules only allowed users to write their own document
+2. Invite code generation had race condition causing new codes on each mount
+**Fix Applied:**
+- Updated Firestore rules to allow partner connection updates
+- Added `inviteCode` field stored in Firestore
+- Query by `inviteCode` field instead of document ID
+- Added loading state check before generating codes
+
+### BUG-002: Remove Partner Feature Missing 🔴 TODO
+**Problem:** No way for users to disconnect from a partner (breakups happen).
+**Location:** Settings screen
+**Requirements:**
+- [ ] Add "Remove Partner" button in Settings (only visible when connected)
+- [ ] Confirmation dialog: "Are you sure? This will disconnect you from [Partner Name]"
+- [ ] Clear `coupleId`, `partnerId`, `partnerName`, `connectedAt` from BOTH users
+- [ ] Reset UI to show "Not Connected" state
+- [ ] Consider: Should match history be preserved or cleared?
+
+### BUG-003: Partners See Different Food Lists 🔴 TODO  
+**Problem:** Two connected partners see completely different randomized food lists, making matches unlikely (50+ swipes before a match).
+**Root Cause:** Each user gets an independently shuffled deck.
+**Proposed Solutions:**
+1. **Shared Seed Approach**: Use `coupleId` as random seed so both partners get same shuffle order
+2. **Daily Deck Approach**: Generate a "deck of the day" for each couple, stored in Firestore
+3. **Priority Queue**: Show foods that partner has already liked first (increases match probability)
+4. **Hybrid**: Combine approaches - shared base order + prioritize partner's likes
+**Requirements:**
+- [ ] Design and implement shared deck system
+- [ ] Ensure both partners see foods in similar order
+- [ ] Prioritize showing foods partner has already liked (if any)
+- [ ] Test match rate improvement
+
+### BUG-004: Uber Eats Button Not Working 🔴 TODO
+**Problem:** "Order In" / Uber Eats button on match screen doesn't work.
+**Location:** `app/match.tsx`
+**Requirements:**
+- [ ] Debug deep link URL for Uber Eats
+- [ ] Test on physical iOS device (deep links don't work in simulator)
+- [ ] Add fallback to open Uber Eats in App Store if not installed
+- [ ] Consider adding DoorDash as alternative option
+
+### BUG-005: Match Notification Only Sent to One Partner 🔴 TODO
+**Problem:** When a match occurs, only the user who made the matching swipe gets notified. Partner doesn't know about the match.
+**Root Cause:** Match detection happens client-side, notification only sent locally.
+**Proposed Solution:**
+1. **Cloud Function Trigger**: When a match document is created in Firestore, trigger a Cloud Function
+2. **Notify Both Partners**: Cloud Function sends push notification to BOTH users in the couple
+3. **Handle App States**: Notification should work whether app is open, backgrounded, or closed
+**Requirements:**
+- [ ] Create Firestore trigger on `matches` collection
+- [ ] Look up both partner's push tokens from `users` collection
+- [ ] Send push notification to both partners
+- [ ] Include match details (food name) in notification
+- [ ] Handle case where one partner has app open (don't double-notify)
+
+### BUG-006: Invite Code Regenerating on Each Visit 🔴 TODO (Partial Fix)
+**Problem:** Invite code changes every time user visits Connect screen.
+**Status:** Partial fix in Build 22 (added loading check), but may need further testing.
+**Requirements:**
+- [ ] Verify fix works in Build 23+
+- [ ] Ensure code persists across app restarts
+- [ ] Add visual indicator when code is loading vs. ready
+
+---
+
+## Next Steps (Immediate Priority)
+
+### 🔴 Critical (Must Fix Before App Store)
+1. **BUG-003: Shared Food Deck** - Partners must see same foods to match reasonably
+2. **BUG-005: Match Notifications for Both Partners** - Both users need to know about matches
+3. **BUG-002: Remove Partner Feature** - Essential for real-world usage
+4. **BUG-004: Fix Uber Eats Deep Link** - Core feature not working
+
+### 🟡 Important (Should Fix)
+5. **BUG-006: Verify Invite Code Fix** - Confirm codes persist properly
+6. **Restore RevenueCat** - Re-enable payment system (see RESTORATION_GUIDE.md)
+
+### 🟢 Nice to Have
+7. **Add Smart Search** - Cookbook search by title, ingredients, or tags
+8. **Prepare App Store Assets** - Icons, screenshots, marketing materials
 
 ---
 

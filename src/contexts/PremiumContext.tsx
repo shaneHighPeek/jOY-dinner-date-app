@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { CustomerInfo } from 'react-native-purchases';
 import * as RevenueCatService from '../services/revenueCatService';
+import { CustomerInfo } from '../services/revenueCatService';
 import { useAuth } from '../hooks/useAuth';
 
 interface PremiumContextType {

@@ -1,167 +1,120 @@
-import Purchases, { 
-  PurchasesOfferings, 
-  CustomerInfo,
-  PurchasesPackage,
-  LOG_LEVEL 
-} from 'react-native-purchases';
-import { Platform } from 'react-native';
+/**
+ * RevenueCat Service - STUB IMPLEMENTATION
+ * 
+ * The react-native-purchases native module has been temporarily removed
+ * to stabilize the app. This stub provides the same interface but returns
+ * safe default values.
+ * 
+ * TODO: Re-add react-native-purchases once the app is stable
+ */
 
-// RevenueCat API Keys (you'll need to add these to your .env file)
-const REVENUECAT_API_KEY_IOS = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY || '';
-const REVENUECAT_API_KEY_ANDROID = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY || '';
+// Stub types to match RevenueCat interface
+export interface CustomerInfo {
+  entitlements: {
+    active: Record<string, any>;
+    all: Record<string, any>;
+  };
+  activeSubscriptions: string[];
+  allPurchasedProductIdentifiers: string[];
+  latestExpirationDate: string | null;
+  firstSeen: string;
+  originalAppUserId: string;
+  requestDate: string;
+  originalApplicationVersion: string | null;
+  originalPurchaseDate: string | null;
+  managementURL: string | null;
+}
+
+export interface PurchasesPackage {
+  identifier: string;
+  packageType: string;
+  product: {
+    identifier: string;
+    description: string;
+    title: string;
+    price: number;
+    priceString: string;
+    currencyCode: string;
+  };
+  offeringIdentifier: string;
+}
+
+export interface PurchasesOffering {
+  identifier: string;
+  serverDescription: string;
+  availablePackages: PurchasesPackage[];
+  lifetime: PurchasesPackage | null;
+  annual: PurchasesPackage | null;
+  sixMonth: PurchasesPackage | null;
+  threeMonth: PurchasesPackage | null;
+  twoMonth: PurchasesPackage | null;
+  monthly: PurchasesPackage | null;
+  weekly: PurchasesPackage | null;
+}
+
+export interface PurchasesOfferings {
+  current: PurchasesOffering | null;
+  all: Record<string, PurchasesOffering>;
+}
 
 /**
- * Initialize RevenueCat SDK
- * Call this once when the app starts, after user authentication
+ * Initialize RevenueCat SDK (STUB)
  */
 export const initializeRevenueCat = async (userId: string): Promise<void> => {
-  try {
-    // Check if API key exists
-    const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
-    
-    if (!apiKey || apiKey.trim() === '') {
-      console.warn('⚠️ RevenueCat API key not configured, skipping initialization');
-      return;
-    }
-
-    // Configure SDK
-    if (Platform.OS === 'ios') {
-      await Purchases.configure({ apiKey: REVENUECAT_API_KEY_IOS, appUserID: userId });
-    } else if (Platform.OS === 'android') {
-      await Purchases.configure({ apiKey: REVENUECAT_API_KEY_ANDROID, appUserID: userId });
-    }
-
-    // Enable debug logs in development
-    if (__DEV__) {
-      await Purchases.setLogLevel(LOG_LEVEL.DEBUG);
-    }
-
-    console.log('✅ RevenueCat initialized for user:', userId);
-  } catch (error) {
-    console.error('❌ Failed to initialize RevenueCat:', error);
-    // Don't throw - let the app continue without RevenueCat
-  }
+  console.log('ℹ️ RevenueCat stub: initializeRevenueCat called for user:', userId);
+  // No-op - RevenueCat is disabled
 };
 
 /**
- * Get available subscription offerings
+ * Get available subscription offerings (STUB)
  */
 export const getOfferings = async (): Promise<PurchasesOfferings | null> => {
-  try {
-    const offerings = await Purchases.getOfferings();
-    
-    if (offerings.current !== null) {
-      console.log('📦 Available offerings:', offerings.current.availablePackages.length);
-      return offerings;
-    }
-    
-    console.warn('⚠️ No offerings available');
-    return null;
-  } catch (error) {
-    console.error('❌ Failed to get offerings:', error);
-    return null;
-  }
+  console.log('ℹ️ RevenueCat stub: getOfferings called - returning null');
+  return null;
 };
 
 /**
- * Purchase a package
+ * Purchase a package (STUB)
  */
 export const purchasePackage = async (
   packageToPurchase: PurchasesPackage
 ): Promise<{ success: boolean; customerInfo?: CustomerInfo; error?: string }> => {
-  try {
-    const { customerInfo } = await Purchases.purchasePackage(packageToPurchase);
-    console.log('✅ Purchase successful:', customerInfo.entitlements.active);
-    
-    return {
-      success: true,
-      customerInfo,
-    };
-  } catch (error: any) {
-    if (error.userCancelled) {
-      console.log('ℹ️ User cancelled purchase');
-      return {
-        success: false,
-        error: 'User cancelled',
-      };
-    }
-    
-    console.error('❌ Purchase failed:', error);
-    return {
-      success: false,
-      error: error.message || 'Purchase failed',
-    };
-  }
+  console.log('ℹ️ RevenueCat stub: purchasePackage called');
+  return {
+    success: false,
+    error: 'Purchases are temporarily unavailable',
+  };
 };
 
 /**
- * Restore previous purchases
+ * Restore previous purchases (STUB)
  */
 export const restorePurchases = async (): Promise<{
   success: boolean;
   customerInfo?: CustomerInfo;
   error?: string;
 }> => {
-  try {
-    const customerInfo = await Purchases.restorePurchases();
-    console.log('✅ Purchases restored:', customerInfo.entitlements.active);
-    
-    return {
-      success: true,
-      customerInfo,
-    };
-  } catch (error: any) {
-    console.error('❌ Failed to restore purchases:', error);
-    return {
-      success: false,
-      error: error.message || 'Restore failed',
-    };
-  }
+  console.log('ℹ️ RevenueCat stub: restorePurchases called');
+  return {
+    success: false,
+    error: 'Restore is temporarily unavailable',
+  };
 };
 
 /**
- * Check if user has premium access
+ * Check if user has premium access (STUB)
  */
 export const checkPremiumStatus = async (): Promise<boolean> => {
-  try {
-    // Check if RevenueCat is configured
-    const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
-    if (!apiKey || apiKey.trim() === '') {
-      console.warn('⚠️ RevenueCat not configured, returning false for premium status');
-      return false;
-    }
-
-    const customerInfo = await Purchases.getCustomerInfo();
-    
-    // Check if user has the "premium" entitlement active
-    const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
-    
-    console.log('🔐 Premium status:', isPremium);
-    return isPremium;
-  } catch (error) {
-    console.error('❌ Failed to check premium status:', error);
-    return false;
-  }
+  console.log('ℹ️ RevenueCat stub: checkPremiumStatus called - returning false');
+  return false;
 };
 
 /**
- * Get customer info
+ * Get customer info (STUB)
  */
 export const getCustomerInfo = async (): Promise<CustomerInfo | null> => {
-  try {
-    // Check if RevenueCat is configured
-    const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
-    if (!apiKey || apiKey.trim() === '') {
-      console.warn('⚠️ RevenueCat not configured, returning null for customer info');
-      return null;
-    }
-
-    const customerInfo = await Purchases.getCustomerInfo();
-    return customerInfo;
-  } catch (error) {
-    console.error('❌ Failed to get customer info:', error);
-    return null;
-  }
+  console.log('ℹ️ RevenueCat stub: getCustomerInfo called - returning null');
+  return null;
 };
 
 /**
@@ -172,53 +125,31 @@ export const canAccessPremiumLevels = async (currentLevel: number): Promise<bool
   if (currentLevel < 10) {
     return true;
   }
-  
-  // Levels 10+ require premium
-  return await checkPremiumStatus();
+  // Premium levels require subscription (currently disabled)
+  return false;
 };
 
 /**
- * Check if user has unlimited hints
+ * Check if user has unlimited hints (STUB)
  */
 export const hasUnlimitedHints = async (): Promise<boolean> => {
-  return await checkPremiumStatus();
+  return false;
 };
 
 /**
- * Log out user from RevenueCat
+ * Log out user from RevenueCat (STUB)
  */
 export const logoutRevenueCat = async (): Promise<void> => {
-  try {
-    await Purchases.logOut();
-    console.log('✅ Logged out from RevenueCat');
-  } catch (error) {
-    console.error('❌ Failed to logout from RevenueCat:', error);
-  }
+  console.log('ℹ️ RevenueCat stub: logoutRevenueCat called');
 };
 
 /**
- * Set user attributes for analytics
+ * Set user attributes for analytics (STUB)
  */
 export const setUserAttributes = async (attributes: {
   email?: string;
   displayName?: string;
   level?: number;
 }): Promise<void> => {
-  try {
-    if (attributes.email) {
-      await Purchases.setEmail(attributes.email);
-    }
-    if (attributes.displayName) {
-      await Purchases.setDisplayName(attributes.displayName);
-    }
-    
-    // Custom attributes
-    if (attributes.level !== undefined) {
-      await Purchases.setAttributes({ level: attributes.level.toString() });
-    }
-    
-    console.log('✅ User attributes set');
-  } catch (error) {
-    console.error('❌ Failed to set user attributes:', error);
-  }
+  console.log('ℹ️ RevenueCat stub: setUserAttributes called');
 };
