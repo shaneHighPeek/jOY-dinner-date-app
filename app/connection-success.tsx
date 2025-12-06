@@ -207,7 +207,7 @@ export default function ConnectionSuccessScreen() {
         style={styles.subtitle}
         entering={FadeInDown.duration(800).delay(600)}
       >
-        jOY would like to send you Notifications
+        Dinner Without Debate would like to send you Notifications
       </Animated.Text>
 
       <Animated.Text 
@@ -272,7 +272,7 @@ export default function ConnectionSuccessScreen() {
         entering={FadeInDown.duration(800).delay(700)}
       >
         <Text style={styles.statText}>
-          jOY keeps it simple: one fun swipe, one quick match, one easy win.
+          We keep it simple: one fun swipe, one quick match, one easy win.
         </Text>
       </Animated.View>
 

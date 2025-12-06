@@ -1,77 +1,106 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useAuth } from '@/hooks/useAuth';
+import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, FadeInUp } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 
-const createStyles = (colors: any) => StyleSheet.create({
+// Define the color type based on your ThemeProvider
+type Colors = {
+  background: string;
+  text: string;
+  primary: string;
+  card: string;
+  border: string;
+  muted: string;
+  [key: string]: any; // Allow other properties
+};
+
+const createStyles = (colors: Colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: 24,
-    paddingTop: 80,
+    paddingHorizontal: 20,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 40,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginTop: 60,
+    marginBottom: 20,
   },
-  diamond: {
-    fontSize: 48,
-    marginBottom: 16,
+  logo: {
+    width: 140,
+    height: 140,
+    marginBottom: 20,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: colors.text,
     textAlign: 'center',
-    marginBottom: 8,
+    fontFamily: 'Georgia',
+    marginBottom: 20,
   },
-  subtitle: {
-    fontSize: 16,
-    color: colors.muted,
-    textAlign: 'center',
-    marginBottom: 32,
+  featuresContainer: {
+    width: '100%',
+    marginBottom: 24,
+    paddingHorizontal: 40,
   },
-  featureList: {
-    marginBottom: 32,
-  },
-  featureItem: {
+  featureRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   featureText: {
     fontSize: 16,
     color: colors.text,
     marginLeft: 12,
+    fontWeight: '500',
   },
   planContainer: {
-    marginBottom: 24,
+    width: '100%',
+    marginBottom: 20,
   },
   plan: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 20,
     borderWidth: 2,
-    borderColor: 'transparent',
-    marginBottom: 16,
+    borderColor: colors.border,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   selectedPlan: {
     borderColor: colors.primary,
+    backgroundColor: `${colors.primary}1A`, // Light primary background
   },
   planDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flex: 1,
   },
-  planName: {
-    fontSize: 18,
+  planTitle: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: colors.text,
+  },
+  planPriceContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginTop: 4,
+  },
+  strikethroughPrice: {
+    textDecorationLine: 'line-through',
+    color: colors.muted,
+    marginRight: 8,
   },
   planPrice: {
     fontSize: 16,
@@ -82,26 +111,96 @@ const createStyles = (colors: any) => StyleSheet.create({
     color: colors.muted,
     marginTop: 4,
   },
+  badgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
   saveBadge: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#ff3232',
+    borderRadius: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginRight: 10,
+  },
+  saveBadgeText: {
     color: 'white',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+  freeBadge: {
+    color: colors.text,
+    fontWeight: 'bold',
+    fontSize: 18,
+    marginRight: 10,
+  },
+  selectionIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.muted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectedIcon: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
+  },
+  trialToggleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: `${colors.primary}1A`,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginBottom: 24,
+    width: '100%',
+  },
+  trialToggleText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.text,
+  },
+  noPaymentText: {
     fontSize: 12,
     fontWeight: 'bold',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    overflow: 'hidden',
-    marginLeft: 8,
+    color: colors.muted,
+    textAlign: 'center',
+    marginBottom: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  footer: {
+    alignItems: 'center',
+    width: '100%',
   },
   button: {
     backgroundColor: colors.primary,
-    paddingVertical: 18,
+    paddingVertical: 16,
     borderRadius: 30,
+    width: '100%',
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   buttonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  buttonArrow: {
+    marginLeft: 8,
+  },
+  footerLinks: {
+    flexDirection: 'row',
+    marginTop: 20,
+  },
+  footerLink: {
+    fontSize: 14,
+    color: colors.muted,
+    textDecorationLine: 'underline',
   },
 });
 
@@ -112,7 +211,28 @@ export default function PaywallScreen() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState('yearly');
+  const [selectedPlan, setSelectedPlan] = useState('weekly'); // Default to weekly trial
+  const [isTrialEnabled, setIsTrialEnabled] = useState(true);
+
+  // Animation for the logo
+  const rotation = useSharedValue(0);
+  useEffect(() => {
+    rotation.value = withRepeat(
+      withSequence(
+        withTiming(-5, { duration: 150 }),
+        withTiming(5, { duration: 150 }),
+        withTiming(0, { duration: 200 })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ rotate: `${rotation.value}deg` }],
+    };
+  });
 
   if (!theme) return null;
   const { colors } = theme;
@@ -123,96 +243,134 @@ export default function PaywallScreen() {
       setError('No user found. Please try signing in again.');
       return;
     }
-
     setLoading(true);
     setError(null);
-
     try {
       const trialEndDate = new Date();
       trialEndDate.setDate(trialEndDate.getDate() + 3);
-
       await updateDoc(doc(db, 'users', user.uid), {
         onboardingComplete: true,
-        trialEndDate,
-        isPremium: true, // During trial
+        trialEndDate: isTrialEnabled ? trialEndDate : null,
+        isPremium: true, // During trial or if purchased
       });
-
       setOnboardingComplete(true);
       setLoading(false);
-      
-      // Navigate to main app
       router.replace('/play');
-    } catch (error: any) {
-      console.error('Failed to update user profile:', error);
-      setError(error.message || 'Failed to complete onboarding. Please try again.');
+    } catch (e: any) {
+      console.error('Failed to update user profile:', e);
+      setError(e.message || 'Failed to complete onboarding.');
       setLoading(false);
     }
   };
 
-  const features = [
-    'One subscription covers both you and your partner',
-    'Unlock the \'Eat In\' game mode',
-    'Scan and save unlimited recipes',
-    'Get personalized recipe suggestions',
-  ];
+  const SelectionCircle = ({ isSelected }: { isSelected: boolean }) => (
+    <View style={[styles.selectionIcon, isSelected && styles.selectedIcon]}>
+      {isSelected && <Ionicons name="checkmark" size={16} color="white" />}
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      <Animated.View entering={FadeInUp.duration(500)} style={styles.header}>
-        <Text style={styles.diamond}>💎</Text>
-        <Text style={styles.title}>Unlock Premium Access</Text>
-        <Text style={styles.subtitle}>Create your account and start your free 3-day trial.</Text>
-      </Animated.View>
+      <Animated.ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        <Animated.View entering={FadeInUp.duration(500)} style={styles.header}>
+          <Animated.Image
+            source={require('../../assets/images/icon.png')}
+            style={[styles.logo, animatedStyle]}
+          />
+          <Text style={styles.title}>Unlimited Access</Text>
+        </Animated.View>
 
-      <Animated.View entering={FadeInUp.duration(500).delay(200)} style={styles.featureList}>
-        {features.map((feature, index) => (
-          <View key={index} style={styles.featureItem}>
-            <Text>✅</Text>
-            <Text style={styles.featureText}>{feature}</Text>
+        <Animated.View entering={FadeInUp.duration(500).delay(100)} style={styles.featuresContainer}>
+          <View style={styles.featureRow}>
+            <Ionicons name="infinite" size={24} color={colors.primary} />
+            <Text style={styles.featureText}>Unlimited Date Ideas</Text>
           </View>
-        ))}
-      </Animated.View>
+          <View style={styles.featureRow}>
+            <Ionicons name="game-controller" size={24} color={colors.primary} />
+            <Text style={styles.featureText}>Unlock 'Eat In' Mode</Text>
+          </View>
+          <View style={styles.featureRow}>
+            <Ionicons name="scan" size={24} color={colors.primary} />
+            <Text style={styles.featureText}>Unlimited Recipe Scans</Text>
+          </View>
+          <View style={styles.featureRow}>
+            <Ionicons name="heart" size={24} color={colors.primary} />
+            <Text style={styles.featureText}>Personalized Advice</Text>
+          </View>
+        </Animated.View>
 
-      <Animated.View entering={FadeInUp.duration(500).delay(400)} style={styles.planContainer}>
-        <TouchableOpacity 
-          style={[styles.plan, selectedPlan === 'yearly' && styles.selectedPlan]}
-          onPress={() => setSelectedPlan('yearly')}
-        >
-          <View style={styles.planDetails}>
-            <View>
-              <Text style={styles.planName}>Yearly Plan</Text>
-              <Text style={styles.planSubtext}>$34.99 per year</Text>
+        <Animated.View entering={FadeInUp.duration(500).delay(200)} style={styles.planContainer}>
+          {/* Lifetime Plan */}
+          <TouchableOpacity
+            style={[styles.plan, selectedPlan === 'yearly' && styles.selectedPlan]}
+            onPress={() => setSelectedPlan('yearly')}
+          >
+            <View style={styles.planDetails}>
+              <Text style={styles.planTitle}>Lifetime Plan</Text>
+              <View style={styles.planPriceContainer}>
+                <Text style={styles.planPrice}>$24.99</Text>
+              </View>
             </View>
-            <Text style={styles.saveBadge}>SAVE 42%</Text>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={[styles.plan, selectedPlan === 'monthly' && styles.selectedPlan]}
-          onPress={() => setSelectedPlan('monthly')}
-        >
-          <View style={styles.planDetails}>
-            <View>
-              <Text style={styles.planName}>3-day Trial then Monthly</Text>
-              <Text style={styles.planSubtext}>Free for 3 days, then $4.99 per month</Text>
+            <View style={styles.badgeContainer}>
+              <View style={styles.saveBadge}>
+                <Text style={styles.saveBadgeText}>BEST VALUE</Text>
+              </View>
+              <SelectionCircle isSelected={selectedPlan === 'yearly'} />
             </View>
-          </View>
-        </TouchableOpacity>
-      </Animated.View>
+          </TouchableOpacity>
 
-      <Animated.View entering={FadeInDown.duration(500).delay(600)} style={{ marginTop: 'auto' }}>
-        <TouchableOpacity style={styles.button} onPress={handleContinue} disabled={loading}>
-          {loading ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.buttonText}>Start Free Trial & Create Account</Text>
-          )}
-        </TouchableOpacity>
-        {error && <Text style={{ color: 'red', marginTop: 16, textAlign: 'center' }}>{error}</Text>}
-        <TouchableOpacity onPress={() => setOnboardingComplete(true)}>
-          <Text style={{ color: colors.muted, textAlign: 'center', marginTop: 16 }}>Skip for now</Text>
-        </TouchableOpacity>
-      </Animated.View>
+          {/* Weekly Plan (Trial) */}
+          <TouchableOpacity
+            style={[styles.plan, selectedPlan === 'weekly' && styles.selectedPlan]}
+            onPress={() => setSelectedPlan('weekly')}
+          >
+            <View style={styles.planDetails}>
+              <Text style={styles.planTitle}>3-Day Trial</Text>
+              <Text style={styles.planSubtext}>then $4.99 per week</Text>
+            </View>
+            <View style={styles.badgeContainer}>
+              <Text style={styles.freeBadge}>Short Term</Text>
+              <SelectionCircle isSelected={selectedPlan === 'weekly'} />
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
+
+        <Animated.View entering={FadeInUp.duration(500).delay(400)} style={styles.trialToggleContainer}>
+          <Text style={styles.trialToggleText}>Free Trial Enabled</Text>
+          <Switch
+            trackColor={{ false: '#767577', true: '#34C759' }}
+            thumbColor={'#ffffff'}
+            ios_backgroundColor="#767577"
+            onValueChange={setIsTrialEnabled}
+            value={isTrialEnabled}
+          />
+        </Animated.View>
+
+        {error && <Text style={{ color: 'red', textAlign: 'center', marginBottom: 10 }}>{error}</Text>}
+
+        <Animated.View entering={FadeInUp.duration(500).delay(600)} style={styles.footer}>
+          <Text style={styles.noPaymentText}>NO PAYMENT REQUIRED TODAY</Text>
+          <TouchableOpacity style={styles.button} onPress={handleContinue} disabled={loading}>
+            {loading ? (
+              <Text style={styles.buttonText}>Loading...</Text>
+            ) : (
+              <>
+                <Text style={styles.buttonText}>Try 3 Days Free</Text>
+                <Ionicons name="arrow-forward" size={20} color="white" style={styles.buttonArrow} />
+              </>
+            )}
+          </TouchableOpacity>
+          <View style={styles.footerLinks}>
+            <TouchableOpacity onPress={() => alert('Restore purchases!')}>
+              <Text style={styles.footerLink}>Restore</Text>
+            </TouchableOpacity>
+            <Text style={{ color: colors.muted, marginHorizontal: 10 }}> | </Text>
+            <TouchableOpacity onPress={() => alert('Show legal!')}>
+              <Text style={styles.footerLink}>Terms of Use & Privacy Policy</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      </Animated.ScrollView>
     </View>
   );
 }

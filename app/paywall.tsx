@@ -11,7 +11,8 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { usePremium } from '@/contexts/PremiumContext';
-import { getOfferings, PurchasesOfferings, PurchasesPackage } from '@/services/revenueCatService';
+import { getOfferings } from '@/services/revenueCatService';
+import { PurchasesOfferings, PurchasesPackage } from 'react-native-purchases';
 
 export default function PaywallScreen() {
   const router = useRouter();

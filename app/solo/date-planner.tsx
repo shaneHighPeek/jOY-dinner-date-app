@@ -19,7 +19,7 @@ const PRE_MADE_TEXTS = [
   {
     emoji: '🔥',
     title: 'The "I\'ve evolved"',
-    text: "I've had a breakthrough. Tonight, I choose peace, love, and dinner without a single debate. Let's use jOY before my brain reboots.",
+    text: "I've had a breakthrough. Tonight, I choose peace, love, and dinner without a single debate. Let's use the app before my brain reboots.",
   },
   {
     emoji: '😂',
@@ -29,7 +29,7 @@ const PRE_MADE_TEXTS = [
   {
     emoji: '😇',
     title: 'The "I\'m pre-apologising"',
-    text: "I vote for a debate-free dinner tonight — zero arguments, zero negotiations, and minimal suspicious eyebrow raises. Let's use jOY!",
+    text: "I vote for a debate-free dinner tonight — zero arguments, zero negotiations, and minimal suspicious eyebrow raises. Let's swipe!",
   },
   {
     emoji: '🍽️',
@@ -39,32 +39,32 @@ const PRE_MADE_TEXTS = [
   {
     emoji: '🤣',
     title: 'The "I know how I get"',
-    text: "Let's do a Dinner Without Debate tonight so we can avoid the annual three-hour 'what do you want?' Olympic event. I'm downloading jOY now.",
+    text: "Let's do a Dinner Without Debate tonight so we can avoid the annual three-hour 'what do you want?' Olympic event. Download the app!",
   },
   {
     emoji: '🧘',
     title: 'The "inner peace"',
-    text: "Calling a peace treaty for tonight's dinner. I'm showing up zen, hydrated, and debate-free. Let's let jOY decide!",
+    text: "Calling a peace treaty for tonight's dinner. I'm showing up zen, hydrated, and debate-free. Let's swipe together!",
   },
   {
     emoji: '💘',
     title: 'The "I\'m trying to impress you"',
-    text: "Dinner tonight? Zero drama, zero debate. I'll even accept your decision without my usual commentary. Let's use jOY together!",
+    text: "Dinner tonight? Zero drama, zero debate. I'll even accept your decision without my usual commentary. Let's swipe together!",
   },
   {
     emoji: '🎯',
     title: 'The "too honest"',
-    text: "Let's do Dinner Without Debate tonight. Because if I'm forced to choose between 20 restaurants again, I might spontaneously combust. jOY will save us.",
+    text: "Let's do Dinner Without Debate tonight. Because if I'm forced to choose between 20 restaurants again, I might spontaneously combust. The app will save us.",
   },
   {
     emoji: '😏',
     title: 'The "romantic but playful"',
-    text: "I've got a brilliant idea: dinner together, no debates, no stress. I just want you, food, and peace. Let's try jOY!",
+    text: "I've got a brilliant idea: dinner together, no debates, no stress. I just want you, food, and peace. Let's swipe!",
   },
   {
     emoji: '🔥',
     title: 'The "most accurate couple dynamic ever"',
-    text: "Dinner Without Debate tonight? You pick, I agree, and we both pretend this is how we always operate. Let's use jOY to make it official.",
+    text: "Dinner Without Debate tonight? You pick, I agree, and we both pretend this is how we always operate. Let's make it official.",
   },
 ];
 
@@ -213,7 +213,7 @@ export default function DatePlannerScreen() {
     }
 
     const inviteCode = userData.uid.substring(0, 8).toUpperCase();
-    const fullMessage = `${messageToShare}\n\n🗓️ When: ${date || 'Anytime works!'}\n\nUse my invite code to join jOY: ${inviteCode}\n\n[App Link Here]`;
+    const fullMessage = `${messageToShare}\n\n🗓️ When: ${date || 'Anytime works!'}\n\nUse my invite code to join Dinner Without Debate: ${inviteCode}\n\n[App Link Here]`;
 
     try {
       await Share.share({

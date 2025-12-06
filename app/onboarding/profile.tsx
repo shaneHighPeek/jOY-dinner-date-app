@@ -33,7 +33,7 @@ const OnboardingProfileScreen = () => {
         What should we call you?
       </Animated.Text>
       <Animated.Text entering={FadeInUp.duration(500).delay(400)} style={[styles.subtitle, { color: colors.muted }]}>
-        This helps us personalize your JOY experience.
+        This helps us personalize your experience.
       </Animated.Text>
 
       <Animated.View entering={FadeInUp.duration(500).delay(600)} style={styles.avatarContainer}>

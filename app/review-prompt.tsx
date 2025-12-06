@@ -234,11 +234,10 @@ export default function ReviewPromptScreen() {
         >
           <View style={styles.ratingRow}>
             <Text style={styles.laurelLeft}>🌿</Text>
-            <Text style={styles.ratingNumber}>4.8</Text>
             <Text style={styles.stars}>⭐⭐⭐⭐⭐</Text>
             <Text style={styles.laurelRight}>🌿</Text>
           </View>
-          <Text style={styles.ratingSubtext}>200K+ App Ratings</Text>
+          <Text style={styles.ratingSubtext}>Help us grow!</Text>
         </Animated.View>
 
         <Animated.Text 
@@ -261,7 +260,7 @@ export default function ReviewPromptScreen() {
               />
             ))}
           </View>
-          <Text style={styles.statsText}>5M+ Cal AI Users</Text>
+          <Text style={styles.statsText}>Join our community</Text>
         </Animated.View>
 
         {testimonials.map((testimonial, index) => (

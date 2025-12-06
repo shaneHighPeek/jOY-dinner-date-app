@@ -61,21 +61,6 @@ const createStyles = (colors: Colors) => StyleSheet.create({
   tilesContainer: {
     gap: 16,
   },
-  testButton: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    backgroundColor: 'rgba(255, 0, 0, 0.7)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    zIndex: 1000,
-  },
-  testButtonText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '600',
-  },
   tile: {
     backgroundColor: colors.card,
     borderRadius: 16,
@@ -436,49 +421,9 @@ const NotConnectedView = () => {
     }
   };
 
-  // Test mode - simulate partner connection without real partner
-  const handleTestConnection = async () => {
-    if (!user || connecting) return;
-
-    setConnecting(true);
-    setError('');
-
-    try {
-      const userRef = doc(db, 'users', user.uid);
-      const batch = writeBatch(db);
-      
-      // Create a fake couple ID for testing
-      const testCoupleId = `${user.uid}_TEST_PARTNER`;
-      
-      batch.update(userRef, {
-        coupleId: testCoupleId,
-        partnerId: 'TEST_PARTNER',
-        partnerName: 'Test Partner',
-        connectedAt: serverTimestamp(),
-      });
-
-      await batch.commit();
-
-      // Navigate to connection success flow
-      router.push('/connection-success' as any);
-    } catch (error: any) {
-      console.error('Failed to test connection:', error);
-      setError('Test connection failed.');
-      setConnecting(false);
-    }
-  };
 
   return (
     <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
-      {/* Test Connection Button - Remove in production */}
-      <TouchableOpacity 
-        style={styles.testButton} 
-        onPress={handleTestConnection}
-        disabled={connecting}
-      >
-        <Text style={styles.testButtonText}>TEST CONNECTION</Text>
-      </TouchableOpacity>
-
       <View style={styles.header}>
         <Animated.Text 
           style={styles.title}
