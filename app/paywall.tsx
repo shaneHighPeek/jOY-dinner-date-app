@@ -248,7 +248,7 @@ export default function PaywallScreen() {
           <TouchableOpacity
             style={[styles.ctaButton, purchasing && styles.ctaButtonDisabled]}
             onPress={handlePurchase}
-            disabled={purchasing || !selectedPackage}
+            disabled={purchasing}
           >
             {purchasing ? (
               <ActivityIndicator color="#FFF" />

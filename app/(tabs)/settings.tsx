@@ -193,13 +193,22 @@ const createStyles = (colors: Colors) => StyleSheet.create({
 
 export default function SettingsScreen() {
   const theme = useTheme();
-  const { userData } = useUser();
+  const { userData, loading: userLoading } = useUser();
   const { user } = useAuth();
   const { restorePurchases } = usePremium();
   const { isPremium, isLifetime, isOnTrial, trialDaysLeft } = usePremiumStatus();
   const router = useRouter();
   const [removing, setRemoving] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  
+  // Debug logging for partner data
+  console.log('Settings userData:', {
+    coupleId: userData?.coupleId,
+    partnerId: userData?.partnerId,
+    partnerName: userData?.partnerName,
+    isPremium: userData?.isPremium,
+    trialEndDate: userData?.trialEndDate,
+  });
   
   if (!theme || !userData) return null;
   const { colors, isDarkMode, toggleTheme } = theme;
@@ -402,48 +411,21 @@ export default function SettingsScreen() {
           )}
         </View>
         
-        {/* Developer Testing Section */}
-        {__DEV__ && (
-          <>
-            <Text style={styles.sectionTitle}>Developer</Text>
-            <TouchableOpacity
-              style={[styles.removeButton, { marginBottom: 12 }]}
-              onPress={async () => {
-                if (!user) return;
-                Alert.alert(
-                  'Reset Account',
-                  'This will reset your account to trial mode for testing. Are you sure?',
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                      text: 'Reset',
-                      style: 'destructive',
-                      onPress: async () => {
-                        try {
-                          const trialEndDate = new Date();
-                          trialEndDate.setDate(trialEndDate.getDate() + 3);
-                          
-                          const userRef = doc(db, 'users', user.uid);
-                          await updateDoc(userRef, {
-                            isPremium: false,
-                            isLifetime: false,
-                            trialEndDate: trialEndDate,
-                            hints: 1,
-                          });
-                          Alert.alert('Success', 'Account reset to trial mode!');
-                        } catch (error) {
-                          Alert.alert('Error', 'Failed to reset account');
-                        }
-                      },
-                    },
-                  ]
-                );
-              }}
-            >
-              <Text style={styles.removeButtonText}>Reset to Trial Mode</Text>
-            </TouchableOpacity>
-          </>
-        )}
+        {/* Developer Testing Section - Hidden but code preserved
+            To reset trial via Firebase Console or code:
+            1. Go to Firestore > users > [userId]
+            2. Set isPremium: false, isLifetime: false
+            3. Set trialEndDate: [date 3 days from now]
+            
+            Or use this code snippet:
+            const trialEndDate = new Date();
+            trialEndDate.setDate(trialEndDate.getDate() + 3);
+            await updateDoc(doc(db, 'users', userId), {
+              isPremium: false,
+              isLifetime: false,
+              trialEndDate: trialEndDate,
+            });
+        */}
         
         {/* Bottom padding for scroll */}
         <View style={{ height: 40 }} />

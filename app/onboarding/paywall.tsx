@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, Image, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, Image, Linking, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useAuth } from '@/hooks/useAuth';
+import { usePremium } from '@/contexts/PremiumContext';
+import { getOfferings } from '@/services/revenueCatService';
+import { PurchasesOfferings } from 'react-native-purchases';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, FadeInUp } from 'react-native-reanimated';
@@ -207,10 +210,34 @@ export default function PaywallScreen() {
   const router = useRouter();
   const theme = useTheme();
   const { user, setOnboardingComplete } = useAuth();
+  const { purchasePackage, restorePurchases } = usePremium();
   const [loading, setLoading] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState('weekly'); // Default to weekly trial
-  const [isTrialEnabled, setIsTrialEnabled] = useState(true);
+  const [selectedPlan, setSelectedPlan] = useState<'lifetime' | 'trial'>('trial'); // Default to trial
+  const [offerings, setOfferings] = useState<PurchasesOfferings | null>(null);
+
+  // Load RevenueCat offerings
+  useEffect(() => {
+    const loadOfferings = async () => {
+      try {
+        const offers = await getOfferings();
+        setOfferings(offers);
+        console.log('Onboarding paywall offerings:', offers?.current?.availablePackages?.map(p => ({
+          id: p.identifier,
+          type: p.packageType,
+          price: p.product.priceString,
+        })));
+      } catch (error) {
+        console.error('Failed to load offerings:', error);
+      }
+    };
+    loadOfferings();
+  }, []);
+
+  // Get packages
+  const lifetimePkg = offerings?.current?.availablePackages.find(pkg => pkg.packageType === 'LIFETIME');
+  const weeklyPkg = offerings?.current?.availablePackages.find(pkg => pkg.packageType === 'WEEKLY');
 
   // Animation for the logo
   const rotation = useSharedValue(0);
@@ -236,7 +263,43 @@ export default function PaywallScreen() {
   const { colors } = theme;
   const styles = createStyles(colors);
 
-  const handleContinue = async () => {
+  // Handle lifetime purchase
+  const handleLifetimePurchase = async () => {
+    if (!lifetimePkg) {
+      Alert.alert('Unable to Purchase', 'Lifetime plan not available. Please try again later.');
+      return;
+    }
+
+    setPurchasing(true);
+    try {
+      console.log('Starting lifetime purchase...');
+      const result = await purchasePackage(lifetimePkg);
+      console.log('Purchase result:', result);
+
+      if (result.success) {
+        // Complete onboarding after successful purchase
+        await updateDoc(doc(db, 'users', user!.uid), {
+          onboardingComplete: true,
+        });
+        setOnboardingComplete(true);
+        Alert.alert(
+          '🎉 Welcome to Premium!',
+          'You now have lifetime access to all features!',
+          [{ text: 'Continue', onPress: () => router.replace('/play') }]
+        );
+      } else if (result.error !== 'User cancelled') {
+        Alert.alert('Purchase Failed', result.error || 'Something went wrong');
+      }
+    } catch (error: any) {
+      console.error('Purchase error:', error);
+      Alert.alert('Error', error.message || 'Purchase failed');
+    } finally {
+      setPurchasing(false);
+    }
+  };
+
+  // Handle starting trial (no payment)
+  const handleStartTrial = async () => {
     if (!user) {
       setError('No user found. Please try signing in again.');
       return;
@@ -248,9 +311,8 @@ export default function PaywallScreen() {
       trialEndDate.setDate(trialEndDate.getDate() + 3);
       await updateDoc(doc(db, 'users', user.uid), {
         onboardingComplete: true,
-        trialEndDate: isTrialEnabled ? trialEndDate : null,
+        trialEndDate: trialEndDate,
         // isPremium stays false - trial is NOT premium
-        // Premium is only set when user actually purchases
       });
       setOnboardingComplete(true);
       setLoading(false);
@@ -259,6 +321,15 @@ export default function PaywallScreen() {
       console.error('Failed to update user profile:', e);
       setError(e.message || 'Failed to complete onboarding.');
       setLoading(false);
+    }
+  };
+
+  // Main continue handler
+  const handleContinue = async () => {
+    if (selectedPlan === 'lifetime') {
+      await handleLifetimePurchase();
+    } else {
+      await handleStartTrial();
     }
   };
 
@@ -301,66 +372,74 @@ export default function PaywallScreen() {
         <Animated.View entering={FadeInUp.duration(500).delay(200)} style={styles.planContainer}>
           {/* Lifetime Plan */}
           <TouchableOpacity
-            style={[styles.plan, selectedPlan === 'yearly' && styles.selectedPlan]}
-            onPress={() => setSelectedPlan('yearly')}
+            style={[styles.plan, selectedPlan === 'lifetime' && styles.selectedPlan]}
+            onPress={() => setSelectedPlan('lifetime')}
           >
             <View style={styles.planDetails}>
               <Text style={styles.planTitle}>Lifetime Plan</Text>
               <View style={styles.planPriceContainer}>
-                <Text style={styles.planPrice}>$24.99</Text>
+                <Text style={styles.planPrice}>{lifetimePkg?.product.priceString || '$24.99'}</Text>
               </View>
             </View>
             <View style={styles.badgeContainer}>
               <View style={styles.saveBadge}>
                 <Text style={styles.saveBadgeText}>BEST VALUE</Text>
               </View>
-              <SelectionCircle isSelected={selectedPlan === 'yearly'} />
+              <SelectionCircle isSelected={selectedPlan === 'lifetime'} />
             </View>
           </TouchableOpacity>
 
-          {/* Weekly Plan (Trial) */}
+          {/* Trial Plan */}
           <TouchableOpacity
-            style={[styles.plan, selectedPlan === 'weekly' && styles.selectedPlan]}
-            onPress={() => setSelectedPlan('weekly')}
+            style={[styles.plan, selectedPlan === 'trial' && styles.selectedPlan]}
+            onPress={() => setSelectedPlan('trial')}
           >
             <View style={styles.planDetails}>
               <Text style={styles.planTitle}>3-Day Trial</Text>
-              <Text style={styles.planSubtext}>then $4.99 per week</Text>
+              <Text style={styles.planSubtext}>then {weeklyPkg?.product.priceString || '$4.99'} per week</Text>
             </View>
             <View style={styles.badgeContainer}>
               <Text style={styles.freeBadge}>Short Term</Text>
-              <SelectionCircle isSelected={selectedPlan === 'weekly'} />
+              <SelectionCircle isSelected={selectedPlan === 'trial'} />
             </View>
           </TouchableOpacity>
-        </Animated.View>
-
-        <Animated.View entering={FadeInUp.duration(500).delay(400)} style={styles.trialToggleContainer}>
-          <Text style={styles.trialToggleText}>Free Trial Enabled</Text>
-          <Switch
-            trackColor={{ false: '#767577', true: '#34C759' }}
-            thumbColor={'#ffffff'}
-            ios_backgroundColor="#767577"
-            onValueChange={setIsTrialEnabled}
-            value={isTrialEnabled}
-          />
         </Animated.View>
 
         {error && <Text style={{ color: 'red', textAlign: 'center', marginBottom: 10 }}>{error}</Text>}
 
-        <Animated.View entering={FadeInUp.duration(500).delay(600)} style={styles.footer}>
-          <Text style={styles.noPaymentText}>NO PAYMENT REQUIRED TODAY</Text>
-          <TouchableOpacity style={styles.button} onPress={handleContinue} disabled={loading}>
-            {loading ? (
-              <Text style={styles.buttonText}>Loading...</Text>
+        <Animated.View entering={FadeInUp.duration(500).delay(400)} style={styles.footer}>
+          {selectedPlan === 'trial' && (
+            <Text style={styles.noPaymentText}>NO PAYMENT REQUIRED</Text>
+          )}
+          <TouchableOpacity 
+            style={[styles.button, (loading || purchasing) && { opacity: 0.6 }]} 
+            onPress={handleContinue} 
+            disabled={loading || purchasing}
+          >
+            {loading || purchasing ? (
+              <ActivityIndicator color="white" />
             ) : (
               <>
-                <Text style={styles.buttonText}>Try 3 Days Free</Text>
+                <Text style={styles.buttonText}>
+                  {selectedPlan === 'lifetime' ? 'Get Lifetime Access' : 'Start Free Trial'}
+                </Text>
                 <Ionicons name="arrow-forward" size={20} color="white" style={styles.buttonArrow} />
               </>
             )}
           </TouchableOpacity>
           <View style={styles.footerLinks}>
-            <TouchableOpacity onPress={() => alert('Restore purchases!')}>
+            <TouchableOpacity onPress={async () => {
+              try {
+                const result = await restorePurchases();
+                if (result.success) {
+                  Alert.alert('Restored!', 'Your purchases have been restored.');
+                } else {
+                  Alert.alert('No Purchases', 'No previous purchases found.');
+                }
+              } catch (e) {
+                Alert.alert('Error', 'Failed to restore purchases.');
+              }
+            }}>
               <Text style={styles.footerLink}>Restore</Text>
             </TouchableOpacity>
             <Text style={{ color: colors.muted, marginHorizontal: 10 }}> | </Text>

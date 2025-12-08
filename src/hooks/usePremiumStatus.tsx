@@ -40,12 +40,19 @@ export const usePremiumStatus = (): PremiumStatus => {
   
   // Calculate trial status
   const now = new Date();
-  const isOnTrial = trialEndDate ? trialEndDate > now : false;
-  const trialExpired = trialEndDate ? trialEndDate <= now : false;
+  
+  // IMPORTANT: If user has no trialEndDate set, they should be treated as on trial
+  // This handles legacy users who were created before trial logic was added
+  const hasNoTrialDate = !userData.trialEndDate;
+  const isOnTrial = hasNoTrialDate || (trialEndDate ? trialEndDate > now : false);
+  const trialExpired = !hasNoTrialDate && trialEndDate ? trialEndDate <= now : false;
   
   // Calculate days left in trial
   let trialDaysLeft = 0;
-  if (trialEndDate && isOnTrial) {
+  if (hasNoTrialDate) {
+    // Legacy user without trial date - give them 3 days
+    trialDaysLeft = 3;
+  } else if (trialEndDate && isOnTrial) {
     const msLeft = trialEndDate.getTime() - now.getTime();
     trialDaysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
   }
