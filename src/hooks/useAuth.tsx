@@ -39,12 +39,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Listen to Firebase auth state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setAuthChecked(true);
-    });
+    try {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        console.log('Auth state changed:', user ? user.uid : 'no user');
+        setUser(user);
+        setAuthChecked(true);
+      }, (error) => {
+        console.error('Auth state error:', error);
+        setAuthChecked(true); // Still mark as checked so app doesn't hang
+      });
 
-    return unsubscribe;
+      return unsubscribe;
+    } catch (error) {
+      console.error('Failed to setup auth listener:', error);
+      setAuthChecked(true); // Still mark as checked so app doesn't hang
+    }
   }, []);
 
   // Only set loading to false when BOTH checks are complete
@@ -54,14 +63,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [onboardingChecked, authChecked]);
 
-  // Safety timeout - if loading takes more than 10 seconds, something is wrong
+  // Safety timeout - if loading takes more than 5 seconds, something is wrong
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (loading) {
-        console.warn('useAuth: Loading timeout after 10s, forcing completion');
+        console.warn('useAuth: Loading timeout after 5s, forcing completion');
         setLoading(false);
+        setAuthChecked(true);
+        setOnboardingChecked(true);
       }
-    }, 10000);
+    }, 5000);
 
     return () => clearTimeout(timeoutId);
   }, [loading]);
