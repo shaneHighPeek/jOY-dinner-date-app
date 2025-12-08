@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -218,6 +219,17 @@ export default function PaywallScreen() {
           Subscription automatically renews unless auto-renew is turned off at least 24 hours
           before the end of the current period.
         </Text>
+        
+        {/* Privacy & Terms Links */}
+        <View style={styles.legalLinks}>
+          <TouchableOpacity onPress={() => Linking.openURL('https://dinnerwodebate.com/privacy')}>
+            <Text style={styles.legalLink}>Privacy Policy</Text>
+          </TouchableOpacity>
+          <Text style={styles.legalSeparator}>|</Text>
+          <TouchableOpacity onPress={() => Linking.openURL('https://dinnerwodebate.com/terms')}>
+            <Text style={styles.legalLink}>Terms of Service</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );
@@ -382,6 +394,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 32,
     lineHeight: 18,
+  },
+  legalLinks: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 24,
+  },
+  legalLink: {
+    fontSize: 14,
+    color: '#ff3232',
+    textDecorationLine: 'underline',
+  },
+  legalSeparator: {
+    fontSize: 14,
+    color: '#999',
+    marginHorizontal: 12,
   },
   premiumContainer: {
     flex: 1,

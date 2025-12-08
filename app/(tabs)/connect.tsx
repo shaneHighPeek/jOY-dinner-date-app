@@ -296,6 +296,22 @@ const NotConnectedView = () => {
   const [error, setError] = useState('');
   const [myInviteCode, setMyInviteCode] = useState<string>('');
   const [codeChecked, setCodeChecked] = useState(false);
+  const [wasNotConnected, setWasNotConnected] = useState(false);
+
+  // Track if user was previously not connected (to detect when partner connects them)
+  useEffect(() => {
+    if (!userLoading && userData && !userData.coupleId) {
+      setWasNotConnected(true);
+    }
+  }, [userLoading, userData?.coupleId]);
+
+  // Detect when partner connects to us and navigate to success flow
+  useEffect(() => {
+    if (wasNotConnected && userData?.coupleId) {
+      // Partner just connected to us! Navigate to success flow
+      router.push('/connection-success' as any);
+    }
+  }, [userData?.coupleId, wasNotConnected]);
 
   // Ensure user has an invite code - only run after userData has loaded
   useEffect(() => {

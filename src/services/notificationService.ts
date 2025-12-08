@@ -10,6 +10,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -40,7 +42,7 @@ export const NotificationService = {
 
       // Get the token that uniquely identifies this device
       const token = (await Notifications.getExpoPushTokenAsync({
-        projectId: 'YOUR_PROJECT_ID', // TODO: Replace with your EAS project ID
+        projectId: '44362fc3-9d38-4ca2-a871-81da1bb02d3d',
       })).data;
 
       // Save the token to the user's document

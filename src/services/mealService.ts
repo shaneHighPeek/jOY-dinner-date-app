@@ -15,10 +15,12 @@ export interface MealItem {
 /**
  * Get all available meals for a user, including default food items and their custom recipes
  * This is used in the "Dinner Without Debate" game
+ * Note: Custom recipes are only included for premium users (they can only import if premium)
  */
 export async function getUserMeals(userId: string): Promise<MealItem[]> {
   try {
     // Get user's custom recipes from cookbook
+    // Note: Only premium users can import recipes, so if they have recipes they're premium
     const customRecipes = await getUserRecipes(userId);
     
     // Convert recipes to meal items

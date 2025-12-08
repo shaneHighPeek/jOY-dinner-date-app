@@ -14,17 +14,17 @@ export const tokens = {
       error: '#ff3232',
     },
     light: {
-      background: '#FFF7F2',
-      card: '#FFFFFF',
-      primary: '#ff3232',
+      background: '#FFFFFF',
+      card: '#F2F2F2',
+      primary: '#FF3232',
       accent: '#FFB98D',
       text: '#2D2D2D',
       muted: '#888888',
       // Additional semantic colors
-      border: '#F0E4E4',
+      border: '#E0E0E0',
       overlay: 'rgba(0, 0, 0, 0.3)',
       success: '#4CAF50',
-      error: '#FF5252',
+      error: '#FF3232',
     },
   },
   spacing: {

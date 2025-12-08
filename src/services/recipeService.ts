@@ -4,10 +4,20 @@ import { collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc, s
 
 const recipesCollection = collection(db, 'recipes');
 
+// Helper to remove undefined values (Firestore doesn't accept undefined)
+const removeUndefined = (obj: Record<string, any>): Record<string, any> => {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([_, value]) => value !== undefined)
+  );
+};
+
 // Create a new recipe
 export const addRecipe = async (userId: string, recipeData: Omit<Recipe, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<string> => {
+  // Remove undefined values to avoid Firestore error
+  const cleanedData = removeUndefined(recipeData as Record<string, any>);
+  
   const newRecipe = {
-    ...recipeData,
+    ...cleanedData,
     userId,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),

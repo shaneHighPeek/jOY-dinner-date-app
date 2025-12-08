@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, Image, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
-import { useOnboarding } from '@/hooks/useOnboarding';
 import { useAuth } from '@/hooks/useAuth';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -207,8 +206,7 @@ const createStyles = (colors: Colors) => StyleSheet.create({
 export default function PaywallScreen() {
   const router = useRouter();
   const theme = useTheme();
-  const { setOnboardingComplete } = useOnboarding();
-  const { user } = useAuth();
+  const { user, setOnboardingComplete } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState('weekly'); // Default to weekly trial
@@ -365,8 +363,12 @@ export default function PaywallScreen() {
               <Text style={styles.footerLink}>Restore</Text>
             </TouchableOpacity>
             <Text style={{ color: colors.muted, marginHorizontal: 10 }}> | </Text>
-            <TouchableOpacity onPress={() => alert('Show legal!')}>
-              <Text style={styles.footerLink}>Terms of Use & Privacy Policy</Text>
+            <TouchableOpacity onPress={() => Linking.openURL('https://dinnerwodebate.com/privacy')}>
+              <Text style={styles.footerLink}>Privacy Policy</Text>
+            </TouchableOpacity>
+            <Text style={{ color: colors.muted, marginHorizontal: 10 }}> | </Text>
+            <TouchableOpacity onPress={() => Linking.openURL('https://dinnerwodebate.com/terms')}>
+              <Text style={styles.footerLink}>Terms</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>

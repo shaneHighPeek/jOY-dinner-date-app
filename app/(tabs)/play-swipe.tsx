@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useUser } from '@/hooks/useUser';
@@ -110,20 +110,9 @@ const createStyles = (colors: Colors) => StyleSheet.create({
   buttonIcon: {
     fontSize: 32,
   },
-  testMatchButton: {
-    position: 'absolute',
-    top: 120,
-    right: 20,
-    backgroundColor: 'rgba(255, 0, 0, 0.7)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    zIndex: 1000,
-  },
-  testMatchText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '600',
+  buttonImage: {
+    width: 36,
+    height: 36,
   },
 });
 
@@ -309,125 +298,6 @@ export default function PlaySwipeScreen() {
     }
   };
 
-  // Test match function - simulates a match for testing
-  const handleTestMatch = () => {
-    const currentItem = foodItems[0];
-    if (currentItem) {
-      router.push({ pathname: '/match', params: { itemName: currentItem.name } });
-    }
-  };
-
-  // Test level-up function - adds 100 XP to trigger level-up
-  const handleTestLevelUp = async () => {
-    if (!user || !userData) return;
-    
-    const oldXP = userData.xp || 0;
-    const newXP = oldXP + 100; // Add 100 XP
-    
-    const { didLevelUp, newLevel } = checkLevelUp(oldXP, newXP);
-    const userRef = doc(db, 'users', user.uid);
-    
-    if (didLevelUp) {
-      const hintsEarned = 1;
-      await updateDoc(userRef, {
-        xp: newXP,
-        hints: (userData.hints || 0) + hintsEarned,
-        level: newLevel.level,
-      });
-      
-      router.push({
-        pathname: '/level-up' as any,
-        params: {
-          level: newLevel.level.toString(),
-          title: newLevel.title,
-          hintsEarned: hintsEarned.toString(),
-          isPremium: userData.isPremium ? 'true' : 'false',
-        },
-      });
-    } else {
-      await updateDoc(userRef, { xp: newXP });
-      alert(`Added 100 XP! Total: ${newXP} XP`);
-    }
-  };
-
-  // Test partner function - simulates having a partner
-  const handleTestPartner = async () => {
-    if (!user || !userData) return;
-    
-    const userRef = doc(db, 'users', user.uid);
-    
-    if (userData.partnerId) {
-      // Remove partner
-      await updateDoc(userRef, {
-        partnerId: null,
-        coupleId: null,
-      });
-      alert('Partner removed!');
-    } else {
-      // Add fake partner (use your own user ID as partner for testing)
-      await updateDoc(userRef, {
-        partnerId: user.uid, // Self as partner for testing
-        coupleId: `test_${user.uid}`,
-      });
-      alert('Test partner added! You can now use hints.');
-    }
-  };
-
-  // Test streak function - advances streak by 1 day
-  const handleTestStreak = async () => {
-    if (!user || !userData) return;
-    
-    const userRef = doc(db, 'users', user.uid);
-    const newStreak = (userData.currentStreak || 0) + 1;
-    
-    // Check if this is a milestone
-    const milestones = [3, 7, 14, 30];
-    const milestone = milestones.find(m => m === newStreak);
-    
-    const updates: any = {
-      currentStreak: newStreak,
-      lastActiveDate: new Date().toISOString().split('T')[0],
-    };
-    
-    if (newStreak > (userData.longestStreak || 0)) {
-      updates.longestStreak = newStreak;
-    }
-    
-    if (milestone) {
-      const hintsEarned = milestone === 3 ? 1 : milestone === 7 ? 2 : milestone === 14 ? 3 : 5;
-      updates.hints = (userData.hints || 0) + hintsEarned;
-      updates[`streakRewards.${milestone}day`] = true;
-      
-      await updateDoc(userRef, updates);
-      
-      router.push({
-        pathname: '/streak-milestone' as any,
-        params: {
-          streak: newStreak.toString(),
-          milestone: milestone.toString(),
-          hintsEarned: hintsEarned.toString(),
-        },
-      });
-    } else {
-      await updateDoc(userRef, updates);
-      alert(`Streak: ${newStreak} days! Keep going!`);
-    }
-  };
-
-  // Test premium function - toggles premium status
-  const handleTestPremium = async () => {
-    if (!user || !userData) return;
-    
-    const userRef = doc(db, 'users', user.uid);
-    const newPremiumStatus = !userData.isPremium;
-    
-    await updateDoc(userRef, {
-      isPremium: newPremiumStatus,
-    });
-    
-    alert(newPremiumStatus ? 'Premium activated! 👑\n- Unlimited hints\n- 2x XP boost\n- Exclusive titles' : 'Premium deactivated');
-  };
-
   if (userLoading || !userData || isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -439,43 +309,6 @@ export default function PlaySwipeScreen() {
 
   return (
     <Animated.View style={styles.container} entering={FadeIn.duration(300)}>
-      {/* Test Match Button - Remove in production */}
-      <TouchableOpacity style={styles.testMatchButton} onPress={handleTestMatch}>
-        <Text style={styles.testMatchText}>TEST MATCH</Text>
-      </TouchableOpacity>
-
-      {/* Test Level-Up Button - Remove in production */}
-      <TouchableOpacity 
-        style={[styles.testMatchButton, { top: 160 }]} 
-        onPress={handleTestLevelUp}
-      >
-        <Text style={styles.testMatchText}>+100 XP</Text>
-      </TouchableOpacity>
-
-      {/* Test Partner Button - Remove in production */}
-      <TouchableOpacity 
-        style={[styles.testMatchButton, { top: 220 }]} 
-        onPress={handleTestPartner}
-      >
-        <Text style={styles.testMatchText}>{userData.partnerId ? 'REMOVE PARTNER' : 'ADD PARTNER'}</Text>
-      </TouchableOpacity>
-
-      {/* Test Streak Button - Remove in production */}
-      <TouchableOpacity 
-        style={[styles.testMatchButton, { top: 280 }]} 
-        onPress={handleTestStreak}
-      >
-        <Text style={styles.testMatchText}>+1 DAY STREAK</Text>
-      </TouchableOpacity>
-
-      {/* Test Premium Button - Remove in production */}
-      <TouchableOpacity 
-        style={[styles.testMatchButton, { top: 340 }]} 
-        onPress={handleTestPremium}
-      >
-        <Text style={styles.testMatchText}>{userData.isPremium ? 'DISABLE PREMIUM' : 'ENABLE PREMIUM'}</Text>
-      </TouchableOpacity>
-
       <View style={styles.header}>
         {/* This space is intentionally left blank to push hints to the right */}
         <View style={{ flex: 1 }} />
@@ -507,13 +340,13 @@ export default function PlaySwipeScreen() {
           style={[styles.actionButton, styles.dislikeButton]}
           onPress={() => handleButtonPress('left')}
         >
-          <Text style={styles.buttonIcon}>✕</Text>
+          <Image source={require('../../assets/images/cross.png')} style={styles.buttonImage} resizeMode="contain" />
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.actionButton, styles.likeButton]}
           onPress={() => handleButtonPress('right')}
         >
-          <Text style={styles.buttonIcon}>♥</Text>
+          <Image source={require('../../assets/images/heart2.png')} style={styles.buttonImage} resizeMode="contain" />
         </TouchableOpacity>
       </View>
     </Animated.View>

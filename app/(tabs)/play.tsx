@@ -87,42 +87,44 @@ export default function PlayScreen() {
     );
   }
 
-  // If user has a partner, show the regular play button
-  if (userData.coupleId) {
-    return (
-      <Animated.View style={styles.hubContainer} entering={FadeIn.duration(300)}>
-        <Text style={styles.title}>Ready to Play?</Text>
-        <Text style={styles.subtitle}>Let's find your next great meal together.</Text>
-        <TouchableOpacity style={styles.hubButton} onPress={() => router.push('/play-vibe' as any)}>
-          <Text style={styles.hubButtonEmoji}>🎉</Text>
-          <Text style={styles.hubButtonTitle}>Start Swiping</Text>
-          <Text style={styles.hubButtonSubtitle}>Begin a new session with your partner.</Text>
-        </TouchableOpacity>
-      </Animated.View>
-    );
-  }
+  const hasPartner = !!userData.coupleId;
 
-  // If user is solo, show the Solo Hub
   return (
     <Animated.View style={styles.hubContainer} entering={FadeIn.duration(300)}>
-      <Text style={styles.title}>Solo Mode</Text>
-      <Text style={styles.subtitle}>Connect with your partner or explore solo features.</Text>
+      <Text style={styles.title}>{hasPartner ? 'Ready to Play?' : 'Solo Mode'}</Text>
+      <Text style={styles.subtitle}>
+        {hasPartner ? "Let's find your next great meal together." : 'Connect with your partner or explore solo features.'}
+      </Text>
 
-      <TouchableOpacity style={styles.hubButton} onPress={() => router.push('/(tabs)/connect' as any)}>
-        <Text style={styles.hubButtonEmoji}>💑</Text>
-        <Text style={styles.hubButtonTitle}>Connect with Partner</Text>
-        <Text style={styles.hubButtonSubtitle}>Link up and start swiping together!</Text>
+      {/* Start Swiping - always show */}
+      <TouchableOpacity style={styles.hubButton} onPress={() => router.push('/play-vibe' as any)}>
+        <Text style={styles.hubButtonEmoji}>🎉</Text>
+        <Text style={styles.hubButtonTitle}>Start Swiping</Text>
+        <Text style={styles.hubButtonSubtitle}>
+          {hasPartner ? 'Begin a new session with your partner.' : 'Start swiping to build your taste profile.'}
+        </Text>
       </TouchableOpacity>
 
+      {/* Connect with Partner - only show if solo */}
+      {!hasPartner && (
+        <TouchableOpacity style={styles.hubButton} onPress={() => router.push('/(tabs)/connect' as any)}>
+          <Text style={styles.hubButtonEmoji}>💑</Text>
+          <Text style={styles.hubButtonTitle}>Connect with Partner</Text>
+          <Text style={styles.hubButtonSubtitle}>Link up and start swiping together!</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Date Night Planner - always show */}
       <TouchableOpacity style={styles.hubButton} onPress={() => router.push('/solo/date-planner' as any)}>
         <Text style={styles.hubButtonEmoji}>💌</Text>
         <Text style={styles.hubButtonTitle}>Date Night Planner</Text>
-        <Text style={styles.hubButtonSubtitle}>Plan a perfect date and invite your partner.</Text>
+        <Text style={styles.hubButtonSubtitle}>Plan a perfect date night experience.</Text>
       </TouchableOpacity>
 
+      {/* Dinner Companion - always show */}
       <TouchableOpacity style={styles.hubButton} onPress={() => router.push('/solo/dinner-companion' as any)}>
         <Text style={styles.hubButtonEmoji}>🧘</Text>
-        <Text style={styles.hubButtonTitle}>The Dinner Companion</Text>
+        <Text style={styles.hubButtonTitle}>Dinner Companion</Text>
         <Text style={styles.hubButtonSubtitle}>A guided mindfulness session, just for you.</Text>
       </TouchableOpacity>
     </Animated.View>

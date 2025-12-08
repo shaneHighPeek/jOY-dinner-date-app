@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useOnboarding } from '@/hooks/useOnboarding';
@@ -43,6 +43,14 @@ const createStyles = (colors: any) => StyleSheet.create({
     color: colors.text,
     fontSize: 16,
     marginLeft: 12,
+  },
+  rewardImageContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  rewardImage: {
+    width: 280,
+    height: 80,
   },
   button: {
     backgroundColor: colors.primary,
@@ -90,9 +98,8 @@ export default function CongratulationsScreen() {
         Your taste profile is ready.
       </Animated.Text>
 
-      <Animated.View entering={FadeInUp.duration(500).delay(600)} style={styles.rewardContainer}>
-        <Text style={{ fontSize: 32 }}>🎁</Text>
-        <Text style={styles.rewardText}>You've earned your first Hint!</Text>
+      <Animated.View entering={FadeInUp.duration(500).delay(600)} style={styles.rewardImageContainer}>
+        <Image source={require('../../assets/images/button.png')} style={styles.rewardImage} resizeMode="contain" />
       </Animated.View>
 
       <Animated.View entering={FadeInDown.duration(500).delay(1000)} style={{ width: '100%' }}>

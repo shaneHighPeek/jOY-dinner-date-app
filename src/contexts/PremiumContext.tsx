@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 
 interface PremiumContextType {
   isPremium: boolean;
+  isLifetime: boolean;
   isLoading: boolean;
   customerInfo: CustomerInfo | null;
   checkPremiumStatus: () => Promise<void>;
@@ -17,6 +18,7 @@ const PremiumContext = createContext<PremiumContextType | undefined>(undefined);
 export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [isPremium, setIsPremium] = useState(false);
+  const [isLifetime, setIsLifetime] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
 
@@ -49,16 +51,19 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const checkPremiumStatus = async () => {
     try {
-      const [premium, info] = await Promise.all([
+      const [premium, lifetime, info] = await Promise.all([
         RevenueCatService.checkPremiumStatus(),
+        RevenueCatService.checkIsLifetime(),
         RevenueCatService.getCustomerInfo(),
       ]);
       
       setIsPremium(premium);
+      setIsLifetime(lifetime);
       setCustomerInfo(info);
     } catch (error) {
       console.error('Failed to check premium status:', error);
       setIsPremium(false);
+      setIsLifetime(false);
     }
   };
 
@@ -102,6 +107,7 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
     <PremiumContext.Provider
       value={{
         isPremium,
+        isLifetime,
         isLoading,
         customerInfo,
         checkPremiumStatus,

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Share, Alert, ScrollView } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Share, Alert, ScrollView, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useUser } from '@/hooks/useUser';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -18,52 +18,52 @@ type Colors = {
 const PRE_MADE_TEXTS = [
   {
     emoji: '🔥',
-    title: 'The "I\'ve evolved"',
+    title: 'I\'ve evolved',
     text: "I've had a breakthrough. Tonight, I choose peace, love, and dinner without a single debate. Let's use the app before my brain reboots.",
   },
   {
     emoji: '😂',
-    title: 'The "I\'m self-aware now"',
+    title: 'Self-aware',
     text: "I've decided we're having a debate-free dinner tonight. I'm even letting you choose… which is spiritual growth on my part.",
   },
   {
     emoji: '😇',
-    title: 'The "I\'m pre-apologising"',
+    title: 'Pre-apologising',
     text: "I vote for a debate-free dinner tonight — zero arguments, zero negotiations, and minimal suspicious eyebrow raises. Let's swipe!",
   },
   {
     emoji: '🍽️',
-    title: 'The "I\'m trying to be responsible"',
+    title: 'Responsible',
     text: "Fancy a Dinner Without Debate tonight? I promise not to pretend I'm 'fine with anything' and then veto your suggestions. Let's swipe together!",
   },
   {
     emoji: '🤣',
-    title: 'The "I know how I get"',
+    title: 'I know how I get',
     text: "Let's do a Dinner Without Debate tonight so we can avoid the annual three-hour 'what do you want?' Olympic event. Download the app!",
   },
   {
     emoji: '🧘',
-    title: 'The "inner peace"',
+    title: 'Inner peace',
     text: "Calling a peace treaty for tonight's dinner. I'm showing up zen, hydrated, and debate-free. Let's swipe together!",
   },
   {
     emoji: '💘',
-    title: 'The "I\'m trying to impress you"',
+    title: 'Impress you',
     text: "Dinner tonight? Zero drama, zero debate. I'll even accept your decision without my usual commentary. Let's swipe together!",
   },
   {
     emoji: '🎯',
-    title: 'The "too honest"',
-    text: "Let's do Dinner Without Debate tonight. Because if I'm forced to choose between 20 restaurants again, I might spontaneously combust. The app will save us.",
+    title: 'Too honest',
+    text: "Let's do Dinner Without Debate tonight. Because if I'm forced to choose between 20 restaurants again, I might spontaneously combust.",
   },
   {
     emoji: '😏',
-    title: 'The "romantic but playful"',
+    title: 'Romantic',
     text: "I've got a brilliant idea: dinner together, no debates, no stress. I just want you, food, and peace. Let's swipe!",
   },
   {
     emoji: '🔥',
-    title: 'The "most accurate couple dynamic ever"',
+    title: 'Couple dynamic',
     text: "Dinner Without Debate tonight? You pick, I agree, and we both pretend this is how we always operate. Let's make it official.",
   },
 ];
@@ -76,9 +76,9 @@ const createStyles = (colors: Colors) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingTop: 60,
-    paddingBottom: 16,
+    paddingBottom: 12,
   },
   backButton: {
     width: 40,
@@ -94,94 +94,114 @@ const createStyles = (colors: Colors) => StyleSheet.create({
     color: colors.text,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: colors.text,
   },
-  scrollContent: {
-    padding: 24,
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: colors.muted,
-    marginBottom: 24,
-    lineHeight: 22,
+    marginBottom: 16,
+    lineHeight: 21,
   },
-  sectionTitle: {
-    fontSize: 18,
+  // Message input at top - always visible
+  messageContainer: {
+    marginBottom: 20,
+  },
+  messageLabel: {
+    fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
-    marginBottom: 12,
+    color: colors.muted,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  textOptionsContainer: {
-    marginBottom: 24,
-  },
-  textOption: {
+  messageInput: {
     backgroundColor: colors.card,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
+    fontSize: 16,
+    color: colors.text,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    minHeight: 120,
+    textAlignVertical: 'top',
+  },
+  charCount: {
+    fontSize: 12,
+    color: colors.muted,
+    textAlign: 'right',
+    marginTop: 6,
+  },
+  // Quick fill chips
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.muted,
     marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  chipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 20,
+  },
+  chip: {
+    backgroundColor: colors.card,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: colors.border,
-  },
-  textOptionSelected: {
-    borderColor: colors.primary,
-    borderWidth: 2,
-    backgroundColor: colors.primary + '10',
-  },
-  textOptionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
   },
-  textOptionEmoji: {
-    fontSize: 24,
-    marginRight: 8,
+  chipSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary + '15',
   },
-  textOptionTitle: {
+  chipEmoji: {
     fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    flex: 1,
+    marginRight: 6,
   },
-  textOptionText: {
+  chipText: {
     fontSize: 14,
-    color: colors.muted,
-    lineHeight: 20,
-  },
-  inputGroup: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
     color: colors.text,
-    marginBottom: 8,
+    fontWeight: '500',
   },
-  input: {
-    backgroundColor: colors.card,
-    padding: 16,
-    borderRadius: 12,
-    fontSize: 16,
-    color: colors.text,
-    borderWidth: 1,
-    borderColor: colors.border,
+  // Bottom action area
+  bottomContainer: {
+    padding: 20,
+    paddingBottom: 40,
+    backgroundColor: colors.background,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
   shareButton: {
     backgroundColor: colors.primary,
     padding: 18,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 40,
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   shareButtonDisabled: {
     opacity: 0.5,
   },
   shareButtonText: {
     color: 'white',
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
+    marginLeft: 8,
+  },
+  shareButtonEmoji: {
+    fontSize: 20,
   },
 });
 
@@ -190,30 +210,34 @@ export default function DatePlannerScreen() {
   const { userData } = useUser();
   const router = useRouter();
   const [selectedTextIndex, setSelectedTextIndex] = useState<number | null>(null);
-  const [customMessage, setCustomMessage] = useState('');
-  const [date, setDate] = useState('');
+  const [message, setMessage] = useState('');
+  const inputRef = useRef<TextInput>(null);
 
   if (!theme || !userData) return null;
   const { colors } = theme;
   const styles = createStyles(colors);
 
-  const handleTextSelect = (index: number) => {
+  const handleChipSelect = (index: number) => {
     setSelectedTextIndex(index);
-    setCustomMessage(''); // Clear custom message when selecting a pre-made text
+    setMessage(PRE_MADE_TEXTS[index].text);
+    Keyboard.dismiss();
+  };
+
+  const handleMessageChange = (text: string) => {
+    setMessage(text);
+    // If user edits the message, clear the chip selection
+    const matchingIndex = PRE_MADE_TEXTS.findIndex(t => t.text === text);
+    setSelectedTextIndex(matchingIndex >= 0 ? matchingIndex : null);
   };
 
   const handleShare = async () => {
-    const messageToShare = selectedTextIndex !== null 
-      ? PRE_MADE_TEXTS[selectedTextIndex].text 
-      : customMessage;
-
-    if (!messageToShare.trim()) {
-      Alert.alert('Hold on!', 'Please select a message or write your own.');
+    if (!message.trim()) {
+      Alert.alert('Hold on!', 'Please write or select a message first.');
       return;
     }
 
-    const inviteCode = userData.uid.substring(0, 8).toUpperCase();
-    const fullMessage = `${messageToShare}\n\n🗓️ When: ${date || 'Anytime works!'}\n\nUse my invite code to join Dinner Without Debate: ${inviteCode}\n\n[App Link Here]`;
+    const inviteCode = userData.inviteCode || userData.uid?.substring(0, 6).toUpperCase() || 'DINNER';
+    const fullMessage = `${message}\n\n💌 Join me on Dinner Without Debate!\nMy invite code: ${inviteCode}`;
 
     try {
       await Share.share({
@@ -225,11 +249,15 @@ export default function DatePlannerScreen() {
     }
   };
 
-  const hasSelectedMessage = selectedTextIndex !== null || customMessage.trim().length > 0;
+  const hasMessage = message.trim().length > 0;
 
   return (
-    <View style={styles.container}>
-      {/* Header with Back Button */}
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
+    >
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Text style={styles.backButtonText}>←</Text>
@@ -237,71 +265,63 @@ export default function DatePlannerScreen() {
         <Text style={styles.headerTitle}>Date Night Planner</Text>
       </View>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        style={styles.content} 
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.subtitle}>
-          Pick a fun message to invite your partner for a debate-free dinner! 🍽️✨
+          Invite your partner for a debate-free dinner! 🍽️
         </Text>
 
-        {/* Pre-made Text Options */}
-        <Text style={styles.sectionTitle}>Choose Your Vibe</Text>
-        <View style={styles.textOptionsContainer}>
+        {/* Message Input - Primary focus */}
+        <View style={styles.messageContainer}>
+          <Text style={styles.messageLabel}>Your Message</Text>
+          <TextInput
+            ref={inputRef}
+            style={styles.messageInput}
+            placeholder="Tap a vibe below or write your own..."
+            placeholderTextColor={colors.muted}
+            value={message}
+            onChangeText={handleMessageChange}
+            multiline
+            textAlignVertical="top"
+          />
+          <Text style={styles.charCount}>{message.length} characters</Text>
+        </View>
+
+        {/* Quick Fill Chips */}
+        <Text style={styles.sectionTitle}>Quick Fill</Text>
+        <View style={styles.chipsContainer}>
           {PRE_MADE_TEXTS.map((option, index) => (
             <TouchableOpacity
               key={index}
               style={[
-                styles.textOption,
-                selectedTextIndex === index && styles.textOptionSelected,
+                styles.chip,
+                selectedTextIndex === index && styles.chipSelected,
               ]}
-              onPress={() => handleTextSelect(index)}
+              onPress={() => handleChipSelect(index)}
             >
-              <View style={styles.textOptionHeader}>
-                <Text style={styles.textOptionEmoji}>{option.emoji}</Text>
-                <Text style={styles.textOptionTitle}>{option.title}</Text>
-              </View>
-              <Text style={styles.textOptionText}>{option.text}</Text>
+              <Text style={styles.chipEmoji}>{option.emoji}</Text>
+              <Text style={styles.chipText}>{option.title}</Text>
             </TouchableOpacity>
           ))}
         </View>
+      </ScrollView>
 
-        {/* Custom Message Option */}
-        <Text style={styles.sectionTitle}>Or Write Your Own</Text>
-        <View style={styles.inputGroup}>
-          <TextInput
-            style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
-            placeholder="Write your own invitation message..."
-            placeholderTextColor={colors.muted}
-            value={customMessage}
-            onChangeText={(text) => {
-              setCustomMessage(text);
-              setSelectedTextIndex(null); // Clear selection when typing custom message
-            }}
-            multiline
-          />
-        </View>
-
-        {/* Date/Time Input */}
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>When?</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g., Friday night, this weekend..."
-            placeholderTextColor={colors.muted}
-            value={date}
-            onChangeText={setDate}
-          />
-        </View>
-
-        {/* Share Button */}
+      {/* Fixed Bottom Button */}
+      <View style={styles.bottomContainer}>
         <TouchableOpacity
-          style={[styles.shareButton, !hasSelectedMessage && styles.shareButtonDisabled]}
+          style={[styles.shareButton, !hasMessage && styles.shareButtonDisabled]}
           onPress={handleShare}
-          disabled={!hasSelectedMessage}
+          disabled={!hasMessage}
         >
+          <Text style={styles.shareButtonEmoji}>💌</Text>
           <Text style={styles.shareButtonText}>
-            {hasSelectedMessage ? '💌 Share Invitation' : 'Select a message first'}
+            {hasMessage ? 'Share Invitation' : 'Write a message first'}
           </Text>
         </TouchableOpacity>
-      </ScrollView>
-    </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }

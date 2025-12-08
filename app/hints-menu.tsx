@@ -126,6 +126,7 @@ export default function HintsMenuScreen() {
   const styles = createStyles(colors);
   
   const isPremium = userData?.isPremium === true;
+  const isLifetime = userData?.isLifetime === true; // Only lifetime gets unlimited hints
   const hasPartner = !!userData?.partnerId;
   const currentHints = userData?.hints || 0;
 
@@ -136,14 +137,14 @@ export default function HintsMenuScreen() {
     }
 
     const cost = 1;
-    if (!isPremium && currentHints < cost) {
+    if (!isLifetime && currentHints < cost) {
       Alert.alert('Not Enough Hints', `You need ${cost} hint to use this feature. Keep swiping to earn more!`);
       return;
     }
 
     Alert.alert(
       'Reveal Top Cuisine',
-      isPremium 
+      isLifetime 
         ? 'Reveal your partner\'s favorite cuisine?' 
         : `Spend ${cost} hint to reveal your partner\'s favorite cuisine?`,
       [
@@ -160,8 +161,8 @@ export default function HintsMenuScreen() {
                 return;
               }
 
-              // Spend hints if not premium
-              if (!isPremium) {
+              // Spend hints if not lifetime (lifetime gets unlimited)
+              if (!isLifetime) {
                 const success = await HintService.spendHints(user.uid, cost);
                 if (!success) {
                   Alert.alert('Error', 'Failed to spend hints. Please try again.');
@@ -206,14 +207,14 @@ export default function HintsMenuScreen() {
     }
 
     const cost = 2;
-    if (!isPremium && currentHints < cost) {
+    if (!isLifetime && currentHints < cost) {
       Alert.alert('Not Enough Hints', `You need ${cost} hints to use this feature. Keep swiping to earn more!`);
       return;
     }
 
     Alert.alert(
       'Reveal Recent Likes',
-      isPremium 
+      isLifetime 
         ? 'Reveal your partner\'s last 5 liked items?' 
         : `Spend ${cost} hints to reveal your partner\'s last 5 liked items?`,
       [
@@ -230,8 +231,8 @@ export default function HintsMenuScreen() {
                 return;
               }
 
-              // Spend hints if not premium
-              if (!isPremium) {
+              // Spend hints if not lifetime (lifetime gets unlimited)
+              if (!isLifetime) {
                 const success = await HintService.spendHints(user.uid, cost);
                 if (!success) {
                   Alert.alert('Error', 'Failed to spend hints. Please try again.');
@@ -293,8 +294,8 @@ export default function HintsMenuScreen() {
           <View style={styles.header}>
             <Text style={styles.title}>💡 Use a Hint</Text>
             <Text style={styles.subtitle}>
-              {isPremium 
-                ? 'Unlimited hints with Premium! 👑' 
+              {isLifetime 
+                ? 'Unlimited hints with Lifetime! 👑' 
                 : `You have ${currentHints} hint${currentHints !== 1 ? 's' : ''}`}
             </Text>
           </View>
@@ -313,8 +314,8 @@ export default function HintsMenuScreen() {
           >
             <View style={styles.optionHeader}>
               <Text style={styles.optionTitle}>🍝 Top Cuisine</Text>
-              <View style={[styles.costBadge, isPremium && styles.freeBadge]}>
-                <Text style={styles.costText}>{isPremium ? 'FREE' : '1 Hint'}</Text>
+              <View style={[styles.costBadge, isLifetime && styles.freeBadge]}>
+                <Text style={styles.costText}>{isLifetime ? 'FREE' : '1 Hint'}</Text>
               </View>
             </View>
             <Text style={styles.optionDescription}>
@@ -330,8 +331,8 @@ export default function HintsMenuScreen() {
           >
             <View style={styles.optionHeader}>
               <Text style={styles.optionTitle}>❤️ Recent Likes</Text>
-              <View style={[styles.costBadge, isPremium && styles.freeBadge]}>
-                <Text style={styles.costText}>{isPremium ? 'FREE' : '2 Hints'}</Text>
+              <View style={[styles.costBadge, isLifetime && styles.freeBadge]}>
+                <Text style={styles.costText}>{isLifetime ? 'FREE' : '2 Hints'}</Text>
               </View>
             </View>
             <Text style={styles.optionDescription}>

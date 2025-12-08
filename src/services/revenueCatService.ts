@@ -104,7 +104,28 @@ export const canAccessPremiumLevels = async (currentLevel: number): Promise<bool
 };
 
 export const hasUnlimitedHints = async (): Promise<boolean> => {
-  return await checkPremiumStatus();
+  // Only lifetime purchasers get unlimited hints
+  return await checkIsLifetime();
+};
+
+export const checkIsLifetime = async (): Promise<boolean> => {
+  try {
+    const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
+    if (!apiKey || apiKey.trim() === '') {
+      return false;
+    }
+    const customerInfo = await Purchases.getCustomerInfo();
+    // Check if user has the lifetime entitlement or a non-expiring subscription
+    // RevenueCat marks lifetime purchases with no expiration date
+    const premiumEntitlement = customerInfo.entitlements.active['premium'];
+    if (!premiumEntitlement) return false;
+    
+    // If expirationDate is null, it's a lifetime purchase
+    return premiumEntitlement.expirationDate === null;
+  } catch (error) {
+    console.error('❌ Failed to check lifetime status:', error);
+    return false;
+  }
 };
 
 export const logoutRevenueCat = async (): Promise<void> => {

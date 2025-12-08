@@ -1,18 +1,25 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 
-const avatars = ['😊', '🍕', '🎉', '💖', '🚀', '🌟'];
+const avatarImages = [
+  { id: 'vibe1', source: require('../../assets/images/vibe1.png') },
+  { id: 'vibe2', source: require('../../assets/images/vibe2.png') },
+  { id: 'vibe3', source: require('../../assets/images/vibe3.png') },
+  { id: 'vibe4', source: require('../../assets/images/vibe4.png') },
+  { id: 'vibe5', source: require('../../assets/images/vibe5.png') },
+  { id: 'vibe6', source: require('../../assets/images/vibe6.png') },
+];
 
 const OnboardingProfileScreen = () => {
   const router = useRouter();
   const theme = useTheme();
   const { setName, setAvatar } = useOnboarding();
   const [currentName, setCurrentName] = useState('');
-  const [selectedAvatar, setSelectedAvatar] = useState(avatars[0]);
+  const [selectedAvatar, setSelectedAvatar] = useState(avatarImages[0].id);
 
   if (!theme) return null;
   const { colors } = theme;
@@ -37,7 +44,10 @@ const OnboardingProfileScreen = () => {
       </Animated.Text>
 
       <Animated.View entering={FadeInUp.duration(500).delay(600)} style={styles.avatarContainer}>
-        <Text style={[styles.avatar, { borderColor: colors.primary }]}>{selectedAvatar}</Text>
+        <Image 
+          source={avatarImages.find(a => a.id === selectedAvatar)?.source} 
+          style={[styles.avatarImage, { borderColor: colors.primary }]} 
+        />
       </Animated.View>
 
       <Animated.View entering={FadeInUp.duration(500).delay(800)} style={styles.inputContainer}>
@@ -51,14 +61,15 @@ const OnboardingProfileScreen = () => {
       </Animated.View>
 
       <Animated.Text entering={FadeInUp.duration(500).delay(1000)} style={[styles.avatarLabel, { color: colors.text }]}>
-        Choose your emoji avatar
+        Choose your avatar
       </Animated.Text>
       <Animated.View entering={FadeInUp.duration(500).delay(1200)} style={styles.avatarSelectionContainer}>
-        {avatars.map((avatar) => (
-          <TouchableOpacity key={avatar} onPress={() => setSelectedAvatar(avatar)}>
-            <Text style={[styles.avatarOption, selectedAvatar === avatar && styles.selectedAvatarOption]}>
-              {avatar}
-            </Text>
+        {avatarImages.map((avatar) => (
+          <TouchableOpacity key={avatar.id} onPress={() => setSelectedAvatar(avatar.id)}>
+            <Image 
+              source={avatar.source} 
+              style={[styles.avatarOptionImage, selectedAvatar === avatar.id && styles.selectedAvatarOptionImage]} 
+            />
           </TouchableOpacity>
         ))}
       </Animated.View>
@@ -110,6 +121,12 @@ const styles = StyleSheet.create({
     padding: 10,
     overflow: 'hidden',
   },
+  avatarImage: {
+    width: 100,
+    height: 100,
+    borderWidth: 4,
+    borderRadius: 50,
+  },
   inputContainer: {
     marginBottom: 24,
     alignItems: 'center',
@@ -138,6 +155,16 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   selectedAvatarOption: {
+    opacity: 1,
+    transform: [{ scale: 1.2 }],
+  },
+  avatarOptionImage: {
+    width: 45,
+    height: 45,
+    borderRadius: 22,
+    opacity: 0.5,
+  },
+  selectedAvatarOptionImage: {
     opacity: 1,
     transform: [{ scale: 1.2 }],
   },

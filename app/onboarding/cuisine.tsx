@@ -173,10 +173,10 @@ export default function CuisineScreen() {
 
       <Animated.View entering={FadeInDown.duration(500).delay(800)} style={styles.buttonContainer}>
         <TouchableOpacity style={styles.circleButton} onPress={() => handleButtonPress('left')}>
-          <Text style={{ fontSize: 32 }}>❌</Text>
+          <Image source={require('../../assets/images/cross.png')} style={{ width: 40, height: 40 }} resizeMode="contain" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.circleButton} onPress={() => handleButtonPress('right')}>
-          <Text style={{ fontSize: 32 }}>💚</Text>
+          <Image source={require('../../assets/images/heart2.png')} style={{ width: 40, height: 40 }} resizeMode="contain" />
         </TouchableOpacity>
       </Animated.View>
     </View>

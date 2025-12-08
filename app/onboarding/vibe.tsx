@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ImageSourcePropType } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useOnboarding } from '@/hooks/useOnboarding';
@@ -60,6 +60,11 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontSize: 48,
     marginBottom: 8,
   },
+  vibeImage: {
+    width: 60,
+    height: 60,
+    marginBottom: 8,
+  },
   vibeText: {
     fontSize: 18,
     fontWeight: '600',
@@ -86,13 +91,13 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
 });
 
-const vibes = [
-  { name: 'Chill', emoji: '😊' },
-  { name: 'Adventurous', emoji: '🌮' },
-  { name: 'Fancy', emoji: '🥂' },
-  { name: 'Romantic', emoji: '💖' },
-  { name: 'Cozy', emoji: '🛋️' },
-  { name: 'Spontaneous', emoji: '🚀' },
+const vibes: { name: string; image: ImageSourcePropType }[] = [
+  { name: 'Chill', image: require('../../assets/images/chill.png') },
+  { name: 'Adventurous', image: require('../../assets/images/adven.png') },
+  { name: 'Fancy', image: require('../../assets/images/fancy.png') },
+  { name: 'Romantic', image: require('../../assets/images/romantic.png') },
+  { name: 'Cozy', image: require('../../assets/images/cozy.png') },
+  { name: 'Spontaneous', image: require('../../assets/images/spont.png') },
 ];
 
 export default function VibeScreen() {
@@ -133,7 +138,7 @@ export default function VibeScreen() {
             ]}
             onPress={() => setSelectedVibe(vibe.name)}
           >
-            <Text style={styles.vibeEmoji}>{vibe.emoji}</Text>
+            <Image source={vibe.image} style={styles.vibeImage} resizeMode="contain" />
             <Text style={styles.vibeText}>{vibe.name}</Text>
           </TouchableOpacity>
         ))}

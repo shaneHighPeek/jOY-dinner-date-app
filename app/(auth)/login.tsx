@@ -28,7 +28,7 @@ const createStyles = (colors: Colors, window: { width: number; height: number })
   content: {
     width: '80%',
     alignItems: 'center',
-    paddingBottom: 400, // Adjust this to position button correctly
+    paddingBottom: 415, // Moved button up 15px
   },
   logo: {
     width: 250,
@@ -42,7 +42,7 @@ const createStyles = (colors: Colors, window: { width: number; height: number })
     marginBottom: 20,
   },
   button: {
-    backgroundColor: 'white',
+    backgroundColor: '#FFD10E',
     padding: 15,
     borderRadius: 8,
     width: '100%',
@@ -108,7 +108,7 @@ export default function LoginScreen() {
               {({ pressed }) => loading ? (
                 <ActivityIndicator color="red" size="small" />
               ) : (
-                <Text style={[styles.buttonText, pressed && { color: '#E53935' }]}>Cure Hungry-ness !!</Text>
+                <Text style={[styles.buttonText, pressed && { color: '#E53935' }]}>Let's Cure Hungry-ness!!</Text>
               )}
             </Pressable>
           </Animated.View>

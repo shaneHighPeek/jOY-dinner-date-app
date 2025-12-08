@@ -23,8 +23,8 @@ const WelcomeScreen = () => {
       </View>
 
       <Animated.View entering={FadeInDown.duration(1000).delay(1000)} style={styles.buttonContainer}>
-        <TouchableOpacity style={[styles.button, { backgroundColor: colors.primary }]} onPress={() => router.push('/login')}>
-          <Text style={styles.buttonText}>Get Started</Text>
+        <TouchableOpacity style={[styles.button, { backgroundColor: '#FFD10E' }]} onPress={() => router.push('/login')}>
+          <Text style={styles.buttonText}>Let's cure Hungry-ness!!</Text>
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: '#000000',
     fontSize: 18,
     fontWeight: '600',
   },
