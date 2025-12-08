@@ -60,8 +60,15 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     try {
       setIsLoading(true);
-      await RevenueCatService.initializeRevenueCat(user.uid);
-      await checkPremiumStatus();
+      const initialized = await RevenueCatService.initializeRevenueCat(user.uid);
+      // Only check premium status if RevenueCat was actually initialized
+      if (initialized) {
+        await checkPremiumStatus();
+      } else {
+        // RevenueCat not initialized (no API key), use Firestore data instead
+        setIsPremium(userData?.isPremium === true);
+        setIsLifetime(userData?.isLifetime === true);
+      }
     } catch (error) {
       console.error('Failed to initialize RevenueCat:', error);
       // Don't throw - just set premium to false and continue

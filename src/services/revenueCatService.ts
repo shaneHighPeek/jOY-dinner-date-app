@@ -10,13 +10,13 @@ import { Platform } from 'react-native';
 const REVENUECAT_API_KEY_IOS = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY || '';
 const REVENUECAT_API_KEY_ANDROID = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY || '';
 
-export const initializeRevenueCat = async (userId: string): Promise<void> => {
+export const initializeRevenueCat = async (userId: string): Promise<boolean> => {
   try {
     const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
     
     if (!apiKey || apiKey.trim() === '') {
       console.warn('⚠️ RevenueCat API key not configured, skipping initialization');
-      return;
+      return false;
     }
 
     await Purchases.configure({ apiKey, appUserID: userId });
@@ -26,8 +26,10 @@ export const initializeRevenueCat = async (userId: string): Promise<void> => {
     }
 
     console.log('✅ RevenueCat initialized for user:', userId);
+    return true;
   } catch (error) {
     console.error('❌ Failed to initialize RevenueCat:', error);
+    return false;
   }
 };
 
