@@ -249,7 +249,8 @@ export default function PaywallScreen() {
       await updateDoc(doc(db, 'users', user.uid), {
         onboardingComplete: true,
         trialEndDate: isTrialEnabled ? trialEndDate : null,
-        isPremium: true, // During trial or if purchased
+        // isPremium stays false - trial is NOT premium
+        // Premium is only set when user actually purchases
       });
       setOnboardingComplete(true);
       setLoading(false);

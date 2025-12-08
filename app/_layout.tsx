@@ -3,7 +3,7 @@ import { ThemeProvider as NavThemeProvider, DarkTheme, DefaultTheme } from '@rea
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-import { ActivityIndicator, View, Image } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -14,30 +14,13 @@ import { useUser } from '@/hooks/useUser';
 import { calculateStreakUpdate, STREAK_REWARDS } from '@/utils/streakSystem';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { placeholderImages } from '@/data';
 
 export const unstable_settings = {
   initialRouteName: 'welcome',
 };
 
-// Preload first cuisine images at app startup (Italian is always first)
-// This runs immediately when the module loads, before any component renders
-const preloadOnboardingImages = () => {
-  const imagesToPreload = [
-    placeholderImages['1'],  // Italian - always first
-    placeholderImages['2'],  // Mexican - second
-    placeholderImages['56'], // Greek - third
-  ];
-  
-  imagesToPreload.forEach(url => {
-    if (url) {
-      Image.prefetch(url).catch(() => {});
-    }
-  });
-};
-
-// Execute immediately on module load
-preloadOnboardingImages();
+// Note: Cuisine images are now bundled locally in assets/images/cuisines/
+// No preloading needed - they load instantly
 
 // Detects when a partner connects to the current user (from ANY screen)
 // This handles the case where User B is on Play/Cookbook/Settings when User A connects

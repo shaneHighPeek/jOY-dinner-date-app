@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { SwipeableCard, SwipeableCardRef } from '@/components/onboarding/SwipeableCard';
@@ -74,16 +74,10 @@ export default function CuisineScreen() {
   const { colors } = theme;
   const styles = createStyles(colors);
 
-  // Images are preloaded at app startup in _layout.tsx
-  // This just ensures they're ready (should be instant since preload started earlier)
+  // Local images are bundled with the app, so they're instantly available
   useEffect(() => {
-    // Give a tiny moment for any in-flight prefetch to complete
-    // Images should already be cached from _layout.tsx preload
-    const timer = setTimeout(() => {
-      setImagesLoaded(true);
-    }, 50);
-    
-    return () => clearTimeout(timer);
+    // No need to preload - local images are ready immediately
+    setImagesLoaded(true);
   }, []);
 
   const handleSwipe = (item: (typeof allCuisines)[0], direction: 'left' | 'right') => {

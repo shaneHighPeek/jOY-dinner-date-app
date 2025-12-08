@@ -63,13 +63,17 @@ export interface SwipeableCardRef {
 }
 
 interface SwipeableCardProps {
-  item: { id: string; name: string; emoji: string; caption: string; image: { id: string; hint: string } };
-  onSwipe: (item: { id: string; name: string; emoji: string; caption: string; image: { id: string; hint: string } }, direction: 'left' | 'right') => void;
+  item: { id: string; name: string; emoji: string; caption: string; image: { id: string; hint: string }; localImage?: any };
+  onSwipe: (item: { id: string; name: string; emoji: string; caption: string; image: { id: string; hint: string }; localImage?: any }, direction: 'left' | 'right') => void;
   index: number;
 }
 
 export const SwipeableCard = React.forwardRef<SwipeableCardRef, SwipeableCardProps>(({ item, onSwipe, index }, ref) => {
+  // Use local image if available (for cuisines), otherwise use URL
+  const hasLocalImage = !!item.localImage;
   const imageUrl = placeholderImages[item.image.id as keyof typeof placeholderImages];
+  const imageSource = hasLocalImage ? item.localImage : { uri: imageUrl };
+  
   const theme = useTheme();
   if (!theme) throw new Error('SwipeableCard must be used within a ThemeProvider');
   const { colors } = theme;
@@ -128,11 +132,13 @@ export const SwipeableCard = React.forwardRef<SwipeableCardRef, SwipeableCardPro
     <GestureDetector gesture={gesture}>
       <Animated.View style={[styles.card, animatedStyle]}>
         <ImageBackground 
-          source={{ uri: imageUrl }} 
+          source={imageSource} 
           style={styles.imageBackground}
           resizeMode="cover"
         >
+          {/* Dark overlay */}
           <View style={{...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.3)'}} />
+          {/* Title */}
           <Text style={styles.cardTitle}>{item.name}</Text>
         </ImageBackground>
       </Animated.View>

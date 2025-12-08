@@ -99,15 +99,29 @@ export const foodItems = [
   { id: 'food-97', name: 'Ice Cream', emoji: '🍦', caption: 'Sweet frozen treat.', image: { id: '97', hint: 'ice-cream' }, cuisine: 'Dessert' },
 ];
 
+// Local cuisine images for instant loading during onboarding
+// All images are 600x900 (2:3 portrait) from Unsplash for consistent display
+export const cuisineImages = {
+  italian: require('../../assets/images/cuisines/italian.jpg'),
+  mexican: require('../../assets/images/cuisines/mexican.jpg'),
+  greek: require('../../assets/images/cuisines/greek.jpg'),
+  japanese: require('../../assets/images/cuisines/japanese.jpg'),
+  spanish: require('../../assets/images/cuisines/spanish.jpg'),
+  indian: require('../../assets/images/cuisines/indian.jpg'),
+  chinese: require('../../assets/images/cuisines/chinese.jpg'),
+  french: require('../../assets/images/cuisines/french.jpg'),
+  thai: require('../../assets/images/cuisines/thai.jpg'),
+};
+
 export const cuisines = [
-  { id: 'cuisine-1', name: 'Italian', emoji: '🇮🇹', caption: 'Pasta, pizza, and amore!', image: { id: '1', hint: 'pasta' } },
-  { id: 'cuisine-2', name: 'Mexican', emoji: '🇲🇽', caption: 'Tacos, spice, and everything nice.', image: { id: '2', hint: 'tacos' } },
-  { id: 'cuisine-12', name: 'Greek', emoji: '🇬🇷', caption: 'Gyros, salads, and Mediterranean magic.', image: { id: '56', hint: 'gyro sandwich' } },
-  { id: 'cuisine-3', name: 'Japanese', emoji: '🇯🇵', caption: 'Sushi, ramen, and zen flavors.', image: { id: '3', hint: 'sushi' } },
-  { id: 'cuisine-11', name: 'Spanish', emoji: '🇪🇸', caption: 'Tapas, paella, and Spanish sunshine.', image: { id: '51', hint: 'spanish tapas' } },
-  { id: 'cuisine-5', name: 'Indian', emoji: '🇮🇳', caption: 'Curries, spices, and a feast for the senses.', image: { id: '4', hint: 'curry' } },
-  { id: 'cuisine-4', name: 'Chinese', emoji: '🇨🇳', caption: 'A world of flavor in every bite.', image: { id: '6', hint: 'dumplings' } },
-  { id: 'cuisine-10', name: 'French', emoji: '🇫🇷', caption: 'Elegant, rich, and oh-so-fancy.', image: { id: '8', hint: 'french' } },
-  { id: 'cuisine-6', name: 'Thai', emoji: '🇹🇭', caption: 'Sweet, sour, salty, and spicy harmony.', image: { id: '5', hint: 'thai' } },
+  { id: 'cuisine-1', name: 'Italian', emoji: '🇮🇹', caption: 'Pasta, pizza, and amore!', image: { id: '1', hint: 'pasta' }, localImage: cuisineImages.italian },
+  { id: 'cuisine-2', name: 'Mexican', emoji: '🇲🇽', caption: 'Tacos, spice, and everything nice.', image: { id: '2', hint: 'tacos' }, localImage: cuisineImages.mexican },
+  { id: 'cuisine-12', name: 'Greek', emoji: '🇬🇷', caption: 'Gyros, salads, and Mediterranean magic.', image: { id: '56', hint: 'gyro sandwich' }, localImage: cuisineImages.greek },
+  { id: 'cuisine-3', name: 'Japanese', emoji: '🇯🇵', caption: 'Sushi, ramen, and zen flavors.', image: { id: '3', hint: 'sushi' }, localImage: cuisineImages.japanese },
+  { id: 'cuisine-11', name: 'Spanish', emoji: '🇪🇸', caption: 'Tapas, paella, and Spanish sunshine.', image: { id: '51', hint: 'spanish tapas' }, localImage: cuisineImages.spanish },
+  { id: 'cuisine-5', name: 'Indian', emoji: '🇮🇳', caption: 'Curries, spices, and a feast for the senses.', image: { id: '4', hint: 'curry' }, localImage: cuisineImages.indian },
+  { id: 'cuisine-4', name: 'Chinese', emoji: '🇨🇳', caption: 'A world of flavor in every bite.', image: { id: '6', hint: 'dumplings' }, localImage: cuisineImages.chinese },
+  { id: 'cuisine-10', name: 'French', emoji: '🇫🇷', caption: 'Elegant, rich, and oh-so-fancy.', image: { id: '8', hint: 'french' }, localImage: cuisineImages.french },
+  { id: 'cuisine-6', name: 'Thai', emoji: '🇹🇭', caption: 'Sweet, sour, salty, and spicy harmony.', image: { id: '5', hint: 'thai' }, localImage: cuisineImages.thai },
   { id: 'cuisine-9', name: 'American', emoji: '🇺🇸', caption: 'Burgers, fries, and comfort classics.', image: { id: '7', hint: 'burger' } },
 ];

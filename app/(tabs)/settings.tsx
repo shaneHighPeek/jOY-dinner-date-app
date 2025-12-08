@@ -402,6 +402,49 @@ export default function SettingsScreen() {
           )}
         </View>
         
+        {/* Developer Testing Section */}
+        {__DEV__ && (
+          <>
+            <Text style={styles.sectionTitle}>Developer</Text>
+            <TouchableOpacity
+              style={[styles.removeButton, { marginBottom: 12 }]}
+              onPress={async () => {
+                if (!user) return;
+                Alert.alert(
+                  'Reset Account',
+                  'This will reset your account to trial mode for testing. Are you sure?',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Reset',
+                      style: 'destructive',
+                      onPress: async () => {
+                        try {
+                          const trialEndDate = new Date();
+                          trialEndDate.setDate(trialEndDate.getDate() + 3);
+                          
+                          const userRef = doc(db, 'users', user.uid);
+                          await updateDoc(userRef, {
+                            isPremium: false,
+                            isLifetime: false,
+                            trialEndDate: trialEndDate,
+                            hints: 1,
+                          });
+                          Alert.alert('Success', 'Account reset to trial mode!');
+                        } catch (error) {
+                          Alert.alert('Error', 'Failed to reset account');
+                        }
+                      },
+                    },
+                  ]
+                );
+              }}
+            >
+              <Text style={styles.removeButtonText}>Reset to Trial Mode</Text>
+            </TouchableOpacity>
+          </>
+        )}
+        
         {/* Bottom padding for scroll */}
         <View style={{ height: 40 }} />
       </Animated.View>

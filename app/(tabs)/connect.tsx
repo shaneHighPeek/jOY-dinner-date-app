@@ -1,6 +1,7 @@
 import { Text, View, TouchableOpacity, TextInput, Share, StyleSheet, ScrollView } from 'react-native';
 import { useUser } from '@/hooks/useUser';
 import { useAuth } from '@/hooks/useAuth';
+import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { doc, writeBatch, serverTimestamp, collection, query, where, getDocs, updateDoc, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useState, useEffect } from 'react';
@@ -488,7 +489,8 @@ const NotConnectedView = () => {
   );
 };
 
-const ConnectedView = ({ partnerName, coupleId, isPremium }: { partnerName: string; coupleId: string; isPremium: boolean }) => {
+const ConnectedView = ({ partnerName, coupleId }: { partnerName: string; coupleId: string }) => {
+  const { hasFullAccess, isOnTrial, trialDaysLeft, isPremium } = usePremiumStatus();
   const theme = useTheme();
   const router = useRouter();
   const [matches, setMatches] = useState<MatchItem[]>([]);
@@ -568,15 +570,20 @@ const ConnectedView = ({ partnerName, coupleId, isPremium }: { partnerName: stri
         </View>
         <Text style={styles.sectionTitle}>Match History</Text>
         <Text style={styles.sectionSubtitle}>Your last 10 dinner decisions</Text>
-        {isPremium && (
+        {isOnTrial && (
+          <View style={[styles.premiumBadge, { backgroundColor: '#4F46E5' }]}>
+            <Text style={styles.premiumBadgeText}>⏳ {trialDaysLeft} days left in trial</Text>
+          </View>
+        )}
+        {isPremium && !isOnTrial && (
           <View style={styles.premiumBadge}>
-            <Text style={styles.premiumBadgeText}>👑 Premium Feature</Text>
+            <Text style={styles.premiumBadgeText}>👑 Premium</Text>
           </View>
         )}
       </View>
 
       {/* Premium Gate or Match List */}
-      {!isPremium ? (
+      {!hasFullAccess ? (
         <View style={styles.lockedOverlay}>
           <Text style={styles.lockEmoji}>🔒</Text>
           <Text style={styles.lockedTitle}>Unlock Match History</Text>
@@ -642,7 +649,6 @@ export default function ConnectScreen() {
         <ConnectedView 
           partnerName={userData.partnerName || 'your partner'} 
           coupleId={userData.coupleId}
-          isPremium={userData.isPremium === true}
         />
       ) : (
         <NotConnectedView />

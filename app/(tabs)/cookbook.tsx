@@ -95,7 +95,7 @@ const createStyles = (colors: Colors) => StyleSheet.create({
 });
 
 export default function CookbookScreen() {
-  const { isPremium } = usePremiumStatus();
+  const { hasFullAccess, isOnTrial, trialDaysLeft } = usePremiumStatus();
   const theme = useTheme();
   const { user } = useAuth();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -149,7 +149,7 @@ export default function CookbookScreen() {
     }, [fetchRecipes])
   );
 
-  if (!isPremium) {
+  if (!hasFullAccess) {
     return <Paywall />;
   }
 
@@ -201,6 +201,25 @@ export default function CookbookScreen() {
           <Ionicons name="add" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
+      
+      {/* Trial Banner */}
+      {isOnTrial && (
+        <View style={{ 
+          backgroundColor: '#4F46E5', 
+          paddingVertical: 8, 
+          paddingHorizontal: 16, 
+          marginHorizontal: 20, 
+          borderRadius: 8,
+          marginBottom: 12,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <Text style={{ color: '#fff', fontWeight: '600' }}>
+            ⏳ {trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''} left in your free trial
+          </Text>
+        </View>
+      )}
       
       {/* Search Bar - only show if there are recipes */}
       {recipes.length > 0 && (
