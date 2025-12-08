@@ -217,19 +217,33 @@ export default function PaywallScreen() {
   const [selectedPlan, setSelectedPlan] = useState<'lifetime' | 'trial'>('trial'); // Default to trial
   const [offerings, setOfferings] = useState<PurchasesOfferings | null>(null);
 
+  const [offeringsLoading, setOfferingsLoading] = useState(true);
+
   // Load RevenueCat offerings
   useEffect(() => {
     const loadOfferings = async () => {
+      setOfferingsLoading(true);
       try {
         const offers = await getOfferings();
         setOfferings(offers);
-        console.log('Onboarding paywall offerings:', offers?.current?.availablePackages?.map(p => ({
-          id: p.identifier,
-          type: p.packageType,
-          price: p.product.priceString,
-        })));
+        console.log('📦 Onboarding paywall offerings:', {
+          hasOfferings: !!offers,
+          current: offers?.current?.identifier,
+          packages: offers?.current?.availablePackages?.map(p => ({
+            id: p.identifier,
+            type: p.packageType,
+            productId: p.product.identifier,
+            price: p.product.priceString,
+          })),
+        });
+        
+        if (!offers?.current?.availablePackages?.length) {
+          console.warn('⚠️ No packages available from RevenueCat');
+        }
       } catch (error) {
-        console.error('Failed to load offerings:', error);
+        console.error('❌ Failed to load offerings:', error);
+      } finally {
+        setOfferingsLoading(false);
       }
     };
     loadOfferings();
@@ -265,16 +279,32 @@ export default function PaywallScreen() {
 
   // Handle lifetime purchase
   const handleLifetimePurchase = async () => {
+    console.log('🛒 handleLifetimePurchase called', {
+      offeringsLoading,
+      hasOfferings: !!offerings,
+      lifetimePkg: lifetimePkg?.identifier,
+    });
+
+    if (offeringsLoading) {
+      Alert.alert('Please Wait', 'Loading purchase options...');
+      return;
+    }
+
     if (!lifetimePkg) {
-      Alert.alert('Unable to Purchase', 'Lifetime plan not available. Please try again later.');
+      console.error('❌ No lifetime package available');
+      Alert.alert(
+        'Unable to Purchase', 
+        'Lifetime plan not available. This could be a connection issue. Please try again.',
+        [{ text: 'OK' }]
+      );
       return;
     }
 
     setPurchasing(true);
     try {
-      console.log('Starting lifetime purchase...');
+      console.log('🛒 Starting lifetime purchase for:', lifetimePkg.identifier);
       const result = await purchasePackage(lifetimePkg);
-      console.log('Purchase result:', result);
+      console.log('🛒 Purchase result:', result);
 
       if (result.success) {
         // Complete onboarding after successful purchase
