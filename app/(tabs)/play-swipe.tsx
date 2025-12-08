@@ -237,8 +237,12 @@ export default function PlaySwipeScreen() {
       
       // If leveled up, award hints and update level
       if (didLevelUp) {
-        const hintsEarned = 1;
-        userUpdates.hints = (userData.hints || 0) + hintsEarned;
+        // Premium users get unlimited hints (don't need to earn them)
+        // Non-premium/trial users get 3 hints per level
+        const hintsEarned = userData.isPremium === true ? 0 : 3;
+        if (hintsEarned > 0) {
+          userUpdates.hints = (userData.hints || 0) + hintsEarned;
+        }
         userUpdates.level = newLevel.level;
         
         // Update Firestore first

@@ -96,14 +96,14 @@ export default function PlayScreen() {
         {hasPartner ? "Let's find your next great meal together." : 'Connect with your partner or explore solo features.'}
       </Text>
 
-      {/* Start Swiping - always show */}
-      <TouchableOpacity style={styles.hubButton} onPress={() => router.push('/play-vibe' as any)}>
-        <Text style={styles.hubButtonEmoji}>🎉</Text>
-        <Text style={styles.hubButtonTitle}>Start Swiping</Text>
-        <Text style={styles.hubButtonSubtitle}>
-          {hasPartner ? 'Begin a new session with your partner.' : 'Start swiping to build your taste profile.'}
-        </Text>
-      </TouchableOpacity>
+      {/* Start Swiping - only show if partnered */}
+      {hasPartner && (
+        <TouchableOpacity style={styles.hubButton} onPress={() => router.push('/play-vibe' as any)}>
+          <Text style={styles.hubButtonEmoji}>🎉</Text>
+          <Text style={styles.hubButtonTitle}>Start Swiping</Text>
+          <Text style={styles.hubButtonSubtitle}>Begin a new session with your partner.</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Connect with Partner - only show if solo */}
       {!hasPartner && (

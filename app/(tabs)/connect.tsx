@@ -1,7 +1,7 @@
 import { Text, View, TouchableOpacity, TextInput, Share, StyleSheet, ScrollView } from 'react-native';
 import { useUser } from '@/hooks/useUser';
 import { useAuth } from '@/hooks/useAuth';
-import { doc, writeBatch, getDoc, serverTimestamp, collection, query, where, getDocs, updateDoc, orderBy, limit } from 'firebase/firestore';
+import { doc, writeBatch, serverTimestamp, collection, query, where, getDocs, updateDoc, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -296,22 +296,6 @@ const NotConnectedView = () => {
   const [error, setError] = useState('');
   const [myInviteCode, setMyInviteCode] = useState<string>('');
   const [codeChecked, setCodeChecked] = useState(false);
-  const [wasNotConnected, setWasNotConnected] = useState(false);
-
-  // Track if user was previously not connected (to detect when partner connects them)
-  useEffect(() => {
-    if (!userLoading && userData && !userData.coupleId) {
-      setWasNotConnected(true);
-    }
-  }, [userLoading, userData?.coupleId]);
-
-  // Detect when partner connects to us and navigate to success flow
-  useEffect(() => {
-    if (wasNotConnected && userData?.coupleId) {
-      // Partner just connected to us! Navigate to success flow
-      router.push('/connection-success' as any);
-    }
-  }, [userData?.coupleId, wasNotConnected]);
 
   // Ensure user has an invite code - only run after userData has loaded
   useEffect(() => {
@@ -644,9 +628,13 @@ const ConnectedView = ({ partnerName, coupleId, isPremium }: { partnerName: stri
 export default function ConnectScreen() {
   const { userData } = useUser();
   const theme = useTheme();
+  
   if (!theme) return null;
   const { colors } = theme;
   const styles = createStyles(colors);
+
+  // Partner connection detection is now handled at the root layout level
+  // (PartnerConnectionDetector in _layout.tsx) so it works from ANY screen
 
   return (
     <View style={styles.container}>

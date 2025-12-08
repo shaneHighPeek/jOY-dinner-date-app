@@ -159,14 +159,150 @@ EXPO_PUBLIC_REVENUECAT_ANDROID_KEY="goog_xxxxxxxxxxxxx"
 
 ---
 
-## 🧪 Step 6: Testing
+## 🧪 Step 6: iOS Sandbox Testing (Complete Guide)
 
-### Sandbox Testing (iOS)
+Follow these steps **exactly** to test in-app purchases on iOS via TestFlight.
 
-1. In App Store Connect, create a **Sandbox Tester** account
-2. On your iOS device, sign out of your Apple ID
-3. Run the app and attempt a purchase
-4. Sign in with your sandbox tester account when prompted
+---
+
+### 6.1 Create a Sandbox Tester Account
+
+1. Go to [App Store Connect](https://appstoreconnect.apple.com)
+2. Click **Users and Access** (top menu)
+3. Click **Sandbox** tab (under "Testers")
+4. Click **+** to add a new sandbox tester
+5. Fill in the form:
+   - **First Name**: Test
+   - **Last Name**: User
+   - **Email**: Use a **NEW email** that has NEVER been used with Apple ID
+     - Example: `dinnerwithoutdebate.test1@gmail.com`
+     - ⚠️ Cannot be an existing Apple ID
+   - **Password**: Create a strong password (save it!)
+   - **Secret Question/Answer**: Fill in anything
+   - **Date of Birth**: Make sure tester is 18+
+   - **Country**: Your country
+6. Click **Create**
+7. **Important**: You'll receive a verification email - click the link to verify
+
+---
+
+### 6.2 Set Up Your iPhone for Sandbox Testing
+
+1. On your **physical iPhone** (not simulator), go to:
+   - **Settings** → **App Store** → Scroll to bottom
+2. Look for **SANDBOX ACCOUNT** section
+3. If you see an existing sandbox account, tap it and **Sign Out**
+4. Tap **Sign In** and enter your sandbox tester credentials
+   - Email: `dinnerwithoutdebate.test1@gmail.com`
+   - Password: (the one you created)
+
+⚠️ **Important**: Do NOT sign out of your real Apple ID in the main Settings. The sandbox account is separate and only used for in-app purchases.
+
+---
+
+### 6.3 Install TestFlight Build
+
+1. Make sure TestFlight app is installed on your iPhone
+2. Open TestFlight
+3. Find "Dinner Without Debate" and install the latest build
+4. Wait for installation to complete
+
+---
+
+### 6.4 Test the Purchase Flow
+
+1. Open the app (Dinner Without Debate)
+2. Navigate to **Settings** → **Upgrade to Premium** (or wherever your paywall is)
+3. Tap on a subscription option (e.g., "Weekly $4.99" or "Lifetime $24.99")
+4. The App Store purchase sheet will appear
+5. **Confirm the purchase** using Face ID/Touch ID
+6. ✅ The purchase will be **FREE** because you're using sandbox
+
+---
+
+### 6.5 Verify Purchase in RevenueCat
+
+1. Go to [RevenueCat Dashboard](https://app.revenuecat.com)
+2. Navigate to **Customers** (left sidebar)
+3. Search for your sandbox user (by App User ID or email)
+4. Verify:
+   - ✅ Transaction appears
+   - ✅ Entitlement "premium" is active
+   - ✅ Subscription status is correct
+
+---
+
+### 6.6 Test Restore Purchases
+
+1. Delete the app from your iPhone
+2. Reinstall from TestFlight
+3. Open the app and go to Settings
+4. Tap **Restore Purchases**
+5. Verify premium features are restored
+
+---
+
+### 6.7 Sandbox Subscription Behavior
+
+Sandbox subscriptions renew **much faster** than real subscriptions for testing:
+
+| Real Duration | Sandbox Duration |
+|---------------|------------------|
+| 3 days        | 2 minutes        |
+| 1 week        | 3 minutes        |
+| 1 month       | 5 minutes        |
+| 2 months      | 10 minutes       |
+| 3 months      | 15 minutes       |
+| 6 months      | 30 minutes       |
+| 1 year        | 1 hour           |
+
+Subscriptions auto-renew up to **6 times** in sandbox, then stop.
+
+---
+
+### 6.8 Common Issues & Fixes
+
+**"Cannot connect to App Store"**
+- Make sure you're on a physical device (not simulator)
+- Check internet connection
+- Verify sandbox account is signed in (Settings → App Store → Sandbox Account)
+
+**"Purchase failed" or "Unknown error"**
+- Sign out and back into sandbox account
+- Restart the app
+- Check RevenueCat dashboard for error details
+
+**"This Apple ID has not yet been used in the iTunes Store"**
+- This is normal for new sandbox accounts
+- Tap "Review" and accept Terms & Conditions
+- Try the purchase again
+
+**Sandbox account not appearing in Settings**
+- You need iOS 14+ for the dedicated Sandbox Account section
+- On older iOS, you'll be prompted during purchase
+
+**Purchase works but premium doesn't unlock**
+- Check RevenueCat dashboard → Customer → Entitlements
+- Verify entitlement ID matches code (`premium`)
+- Check app logs for errors
+
+---
+
+### 6.9 Testing Checklist
+
+- [ ] Sandbox tester created in App Store Connect
+- [ ] Sandbox account verified via email
+- [ ] Sandbox account signed in on iPhone (Settings → App Store)
+- [ ] TestFlight build installed
+- [ ] Weekly subscription purchase tested
+- [ ] Lifetime purchase tested
+- [ ] Premium features unlock after purchase
+- [ ] Restore purchases works
+- [ ] RevenueCat dashboard shows transactions
+
+---
+
+## 🤖 Android Testing (Quick Reference)
 
 ### Test Purchases (Android)
 

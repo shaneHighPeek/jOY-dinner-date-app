@@ -2,6 +2,9 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import * as RevenueCatService from '../services/revenueCatService';
 import { CustomerInfo } from 'react-native-purchases';
 import { useAuth } from '../hooks/useAuth';
+import { useUser } from '../hooks/useUser';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 interface PremiumContextType {
   isPremium: boolean;
@@ -17,10 +20,30 @@ const PremiumContext = createContext<PremiumContextType | undefined>(undefined);
 
 export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useAuth();
+  const { userData } = useUser();
   const [isPremium, setIsPremium] = useState(false);
   const [isLifetime, setIsLifetime] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
+
+  // Share premium with partner when status changes
+  const shareWithPartner = async (premiumStatus: boolean, lifetimeStatus: boolean) => {
+    if (!user || !userData?.partnerId) return;
+    
+    try {
+      // Update partner's premium status in Firestore
+      const partnerRef = doc(db, 'users', userData.partnerId);
+      await updateDoc(partnerRef, {
+        isPremium: premiumStatus,
+        isLifetime: lifetimeStatus,
+        premiumSharedBy: user.uid, // Track who shared the premium
+        premiumSharedAt: new Date().toISOString(),
+      });
+      console.log('Premium shared with partner:', userData.partnerId);
+    } catch (error) {
+      console.error('Failed to share premium with partner:', error);
+    }
+  };
 
   // Initialize RevenueCat when user logs in
   useEffect(() => {
@@ -73,7 +96,29 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       if (result.success && result.customerInfo) {
         setCustomerInfo(result.customerInfo);
-        await checkPremiumStatus();
+        
+        // Check new premium status
+        const [newPremium, newLifetime] = await Promise.all([
+          RevenueCatService.checkPremiumStatus(),
+          RevenueCatService.checkIsLifetime(),
+        ]);
+        
+        setIsPremium(newPremium);
+        setIsLifetime(newLifetime);
+        
+        // Update current user's Firestore record
+        if (user) {
+          const userRef = doc(db, 'users', user.uid);
+          await updateDoc(userRef, {
+            isPremium: newPremium,
+            isLifetime: newLifetime,
+          });
+        }
+        
+        // Share premium with partner if connected
+        if (newPremium && userData?.partnerId) {
+          await shareWithPartner(newPremium, newLifetime);
+        }
       }
       
       return result;
@@ -91,7 +136,29 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       if (result.success && result.customerInfo) {
         setCustomerInfo(result.customerInfo);
-        await checkPremiumStatus();
+        
+        // Check restored premium status
+        const [newPremium, newLifetime] = await Promise.all([
+          RevenueCatService.checkPremiumStatus(),
+          RevenueCatService.checkIsLifetime(),
+        ]);
+        
+        setIsPremium(newPremium);
+        setIsLifetime(newLifetime);
+        
+        // Update current user's Firestore record
+        if (user) {
+          const userRef = doc(db, 'users', user.uid);
+          await updateDoc(userRef, {
+            isPremium: newPremium,
+            isLifetime: newLifetime,
+          });
+        }
+        
+        // Share premium with partner if connected
+        if (newPremium && userData?.partnerId) {
+          await shareWithPartner(newPremium, newLifetime);
+        }
       }
       
       return result;

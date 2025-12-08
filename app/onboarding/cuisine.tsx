@@ -3,7 +3,7 @@ import { Text, View, StyleSheet, TouchableOpacity, Image, ActivityIndicator } fr
 import { useRouter } from 'expo-router';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { SwipeableCard, SwipeableCardRef } from '@/components/onboarding/SwipeableCard';
-import { cuisines as allCuisines, preloadCuisineImages } from '@/data';
+import { cuisines as allCuisines } from '@/data';
 import Animated, { FadeIn, FadeInUp, FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -74,39 +74,16 @@ export default function CuisineScreen() {
   const { colors } = theme;
   const styles = createStyles(colors);
 
-  // Preload first 3 cuisine images and wait for them to load before rendering
+  // Images are preloaded at app startup in _layout.tsx
+  // This just ensures they're ready (should be instant since preload started earlier)
   useEffect(() => {
-    const loadImages = async () => {
-      try {
-        // Get the first 3 cuisine image URLs
-        const firstThreeCuisines = allCuisines.slice(0, 3);
-        const imageUrls = firstThreeCuisines.map(cuisine => {
-          const imageId = cuisine.image.id;
-          // Import the placeholder images to get URLs
-          return require('@/data').placeholderImages[imageId];
-        });
-
-        // Preload all 3 images in parallel
-        await Promise.all(
-          imageUrls.map(url => 
-            Image.prefetch(url).catch(err => {
-              console.warn('Failed to preload image:', err);
-              return Promise.resolve(); // Don't block on individual failures
-            })
-          )
-        );
-
-        // Small delay to ensure images are in cache
-        await new Promise(resolve => setTimeout(resolve, 100));
-        setImagesLoaded(true);
-      } catch (error) {
-        console.error('Error preloading images:', error);
-        // Still show the screen even if preload fails
-        setImagesLoaded(true);
-      }
-    };
-
-    loadImages();
+    // Give a tiny moment for any in-flight prefetch to complete
+    // Images should already be cached from _layout.tsx preload
+    const timer = setTimeout(() => {
+      setImagesLoaded(true);
+    }, 50);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   const handleSwipe = (item: (typeof allCuisines)[0], direction: 'left' | 'right') => {

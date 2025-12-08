@@ -126,6 +126,7 @@ export const HintService = {
 
   /**
    * Deduct hints from user's account
+   * Premium users have unlimited hints (no deduction)
    */
   async spendHints(userId: string, amount: number): Promise<boolean> {
     try {
@@ -137,6 +138,12 @@ export const HintService = {
       }
       
       const userData = userSnap.data();
+      
+      // Premium users have unlimited hints - don't deduct
+      if (userData.isPremium === true) {
+        return true;
+      }
+      
       const currentHints = userData.hints || 0;
       
       // Check if user has enough hints
@@ -158,6 +165,7 @@ export const HintService = {
 
   /**
    * Check if user has enough hints
+   * Premium users always have enough (unlimited)
    */
   async hasEnoughHints(userId: string, amount: number): Promise<boolean> {
     try {
@@ -169,12 +177,44 @@ export const HintService = {
       }
       
       const userData = userSnap.data();
+      
+      // Premium users have unlimited hints
+      if (userData.isPremium === true) {
+        return true;
+      }
+      
       const currentHints = userData.hints || 0;
       
       return currentHints >= amount;
     } catch (error) {
       console.error('Error checking hints:', error);
       return false;
+    }
+  },
+
+  /**
+   * Get user's hint count (returns Infinity for premium users)
+   */
+  async getHintCount(userId: string): Promise<number> {
+    try {
+      const userRef = doc(db, 'users', userId);
+      const userSnap = await getDoc(userRef);
+      
+      if (!userSnap.exists()) {
+        return 0;
+      }
+      
+      const userData = userSnap.data();
+      
+      // Premium users have unlimited hints
+      if (userData.isPremium === true) {
+        return Infinity;
+      }
+      
+      return userData.hints || 0;
+    } catch (error) {
+      console.error('Error getting hint count:', error);
+      return 0;
     }
   },
 };

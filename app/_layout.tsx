@@ -1,9 +1,9 @@
+import React, { useEffect, useRef } from 'react';
 import { ThemeProvider as NavThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-import { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Image } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -14,26 +14,96 @@ import { useUser } from '@/hooks/useUser';
 import { calculateStreakUpdate, STREAK_REWARDS } from '@/utils/streakSystem';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { placeholderImages } from '@/data';
 
 export const unstable_settings = {
   initialRouteName: 'welcome',
 };
 
-function RootNavigator() {
-  const { isDarkMode } = useTheme() || {};
-  const { user, onboardingComplete, loading } = useAuth();
-  const { userData } = useUser();
-  const segments = useSegments();
-  const router = useRouter();
+// Preload first cuisine images at app startup (Italian is always first)
+// This runs immediately when the module loads, before any component renders
+const preloadOnboardingImages = () => {
+  const imagesToPreload = [
+    placeholderImages['1'],  // Italian - always first
+    placeholderImages['2'],  // Mexican - second
+    placeholderImages['56'], // Greek - third
+  ];
+  
+  imagesToPreload.forEach(url => {
+    if (url) {
+      Image.prefetch(url).catch(() => {});
+    }
+  });
+};
 
-  // Check and update streak on app open
+// Execute immediately on module load
+preloadOnboardingImages();
+
+// Detects when a partner connects to the current user (from ANY screen)
+// This handles the case where User B is on Play/Cookbook/Settings when User A connects
+function PartnerConnectionDetector() {
+  const { user } = useAuth();
+  const { userData, loading: userLoading } = useUser();
+  const router = useRouter();
+  const segments = useSegments();
+  
+  // Track the previous coupleId to detect changes
+  const previousCoupleIdRef = useRef<string | null | undefined>(undefined);
+  const hasNavigatedRef = useRef(false);
+
   useEffect(() => {
-    if (!user || !userData) return;
+    // Don't run until we have user data loaded
+    if (userLoading || !user) return;
+    
+    const currentCoupleId = userData?.coupleId || null;
+    const previousCoupleId = previousCoupleIdRef.current;
+    
+    // Initialize on first load
+    if (previousCoupleId === undefined) {
+      previousCoupleIdRef.current = currentCoupleId;
+      console.log('PartnerConnectionDetector: Initialized with coupleId:', currentCoupleId);
+      return;
+    }
+    
+    // Detect transition from no partner to having a partner
+    const justGotConnected = previousCoupleId === null && currentCoupleId !== null;
+    
+    if (justGotConnected && !hasNavigatedRef.current) {
+      console.log('PartnerConnectionDetector: Partner just connected! Previous:', previousCoupleId, 'Current:', currentCoupleId);
+      
+      // Check if we're already on the connection-success screen
+      const isOnConnectionSuccess = segments.some(s => s === 'connection-success');
+      
+      if (!isOnConnectionSuccess) {
+        hasNavigatedRef.current = true;
+        console.log('PartnerConnectionDetector: Navigating to connection-success');
+        // @ts-ignore - expo-router type inference issue
+        router.push('/connection-success');
+      }
+    }
+    
+    // Update the ref for next comparison
+    previousCoupleIdRef.current = currentCoupleId;
+  }, [userData?.coupleId, userLoading, user, segments]);
+
+  return null;
+}
+
+// Separate component for streak checking - only runs after user is in the app
+function StreakChecker() {
+  const { user } = useAuth();
+  const { userData } = useUser();
+  const router = useRouter();
+  const streakCheckedRef = useRef(false);
+
+  useEffect(() => {
+    // Only check once per app session, and only when we have user data
+    if (!user || !userData || streakCheckedRef.current) return;
+    streakCheckedRef.current = true;
 
     const checkStreak = async () => {
       try {
         // Defensive Programming: Ensure streakRewards is a plain object.
-        // Firestore can sometimes return Map-like objects that cause Hermes to crash on iteration.
         const safeStreakRewards = userData.streakRewards ? { ...userData.streakRewards } : {
           '3day': false,
           '7day': false,
@@ -60,25 +130,30 @@ function RootNavigator() {
           updates.longestStreak = streakUpdate.newStreak;
         }
 
-        // Award hints for milestone
+        // Award hints for milestone (only for non-premium users - premium have unlimited)
         if (streakUpdate.milestoneReached && streakUpdate.hintsEarned) {
-          updates.hints = (userData.hints || 0) + streakUpdate.hintsEarned;
+          // Only add hints for non-premium users
+          if (userData.isPremium !== true) {
+            updates.hints = (userData.hints || 0) + streakUpdate.hintsEarned;
+          }
           
           // Mark milestone as claimed
           const milestoneKey = `${streakUpdate.milestoneReached}day`;
           updates[`streakRewards.${milestoneKey}`] = true;
 
-          // Show celebration
+          // Show celebration (show to everyone, but premium users see 0 hints earned)
+          const displayHints = userData.isPremium === true ? 0 : streakUpdate.hintsEarned;
           setTimeout(() => {
             router.push({
               pathname: '/streak-milestone' as any,
               params: {
                 streak: streakUpdate.newStreak.toString(),
                 milestone: streakUpdate.milestoneReached!.toString(),
-                hintsEarned: streakUpdate.hintsEarned!.toString(),
+                hintsEarned: displayHints!.toString(),
+                isPremium: userData.isPremium ? 'true' : 'false',
               },
             });
-          }, 1000); // Delay to let app load first
+          }, 1000);
         }
 
         await updateDoc(userRef, updates);
@@ -88,13 +163,60 @@ function RootNavigator() {
     };
 
     checkStreak();
-  }, [user, userData?.lastActiveDate]);
+  }, [user, userData]);
+
+  return null; // This component doesn't render anything
+}
+
+// Checks if trial has expired and redirects to paywall
+function TrialExpirationChecker() {
+  const { user } = useAuth();
+  const { userData } = useUser();
+  const router = useRouter();
+  const segments = useSegments();
+  const hasCheckedRef = useRef(false);
+
+  useEffect(() => {
+    // Only check once per session, and only when we have user data
+    if (!user || !userData || hasCheckedRef.current) return;
+    
+    // Don't check if already on paywall or onboarding
+    const isOnPaywall = segments.some(s => s === 'paywall');
+    const isOnOnboarding = segments[0] === 'onboarding';
+    if (isOnPaywall || isOnOnboarding) return;
+
+    // Check if user is premium (purchased)
+    if (userData.isPremium === true) return;
+
+    // Check if trial has expired
+    let trialEndDate: Date | null = null;
+    if (userData.trialEndDate) {
+      trialEndDate = userData.trialEndDate.toDate?.() || new Date(userData.trialEndDate);
+    }
+
+    if (trialEndDate && trialEndDate <= new Date()) {
+      hasCheckedRef.current = true;
+      console.log('Trial expired! Redirecting to paywall...');
+      // Small delay to ensure navigation is ready
+      setTimeout(() => {
+        router.push('/paywall' as any);
+      }, 500);
+    }
+  }, [user, userData, segments]);
+
+  return null;
+}
+
+function RootNavigator() {
+  const { isDarkMode } = useTheme() || {};
+  const { user, onboardingComplete, loading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
 
   useEffect(() => {
     if (loading) return;
 
     const inWelcomeGroup = segments[0] === 'welcome';
-
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboardingGroup = segments[0] === 'onboarding';
     const inTabsGroup = segments[0] === '(tabs)';
@@ -104,15 +226,12 @@ function RootNavigator() {
     if (inWelcomeGroup) return;
 
     if (!user && !inAuthGroup) {
-      // Redirect to the login page.
       console.log('Redirecting to login');
       router.replace('/login');
     } else if (user && !onboardingComplete && !inOnboardingGroup) {
-      // Redirect to the onboarding flow.
       console.log('Redirecting to onboarding');
       router.replace('/onboarding' as any);
     } else if (user && onboardingComplete && !inTabsGroup) {
-      // Redirect to the main app.
       console.log('Redirecting to main app');
       router.replace('/play');
     }
@@ -130,11 +249,15 @@ function RootNavigator() {
 
   return (
     <NavThemeProvider value={navTheme}>
+      <PartnerConnectionDetector />
+      <StreakChecker />
+      <TrialExpirationChecker />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="welcome" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="(auth)" />
+        <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
       </Stack>
       <StatusBar style={isDarkMode ? 'light' : 'dark'} />
     </NavThemeProvider>

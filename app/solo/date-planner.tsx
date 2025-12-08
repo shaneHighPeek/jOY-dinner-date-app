@@ -236,8 +236,10 @@ export default function DatePlannerScreen() {
       return;
     }
 
-    const inviteCode = userData.inviteCode || userData.uid?.substring(0, 6).toUpperCase() || 'DINNER';
-    const fullMessage = `${message}\n\n💌 Join me on Dinner Without Debate!\nMy invite code: ${inviteCode}`;
+    const inviteCode = userData.inviteCode || 'DINNER';
+    // App Store link with invite code embedded
+    const appStoreLink = 'https://apps.apple.com/app/dinner-without-debate/id6755674297';
+    const fullMessage = `${message}\n\n💌 Download Dinner Without Debate and use my invite code: ${inviteCode}\n\n${appStoreLink}`;
 
     try {
       await Share.share({

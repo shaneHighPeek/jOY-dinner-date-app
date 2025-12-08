@@ -57,6 +57,10 @@ export default function ProgressScreen() {
       });
 
       try {
+        // Calculate trial end date (3 days from now)
+        const trialEndDate = new Date();
+        trialEndDate.setDate(trialEndDate.getDate() + 3);
+
         await setDoc(doc(db, 'users', user.uid), {
           name,
           avatar,
@@ -65,7 +69,11 @@ export default function ProgressScreen() {
           createdAt: serverTimestamp(),
           xp: 0,
           level: 1,
-          hints: 0, // Start with 0 hints, award first on congrats screen
+          hints: 1, // Start with 1 hint after onboarding
+          isPremium: false, // Not premium, just on trial
+          isLifetime: false,
+          trialStartDate: serverTimestamp(),
+          trialEndDate: trialEndDate, // 3-day trial
           onboardingComplete: false, // Will be set to true on paywall screen
         });
 

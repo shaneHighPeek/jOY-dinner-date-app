@@ -28,7 +28,9 @@ const createStyles = (colors: Colors, window: { width: number; height: number })
   content: {
     width: '80%',
     alignItems: 'center',
-    paddingBottom: 415, // Moved button up 15px
+    position: 'absolute',
+    top: '50%',
+    transform: [{ translateY: -70 }], // Center vertically, then move up 20px (button is ~50px, so -50/2 - 20 = -45, but we want 20px above center so -70)
   },
   logo: {
     width: 250,

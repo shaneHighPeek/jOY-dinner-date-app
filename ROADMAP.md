@@ -1,9 +1,9 @@
-# jOY App Development Roadmap
+# Dinner Without Debate - Development Roadmap
 
 ## Project Overview
-Building "Dinner Date Without Debate" - a mobile app that helps couples decide what to eat using swipeable cards, shared preferences, and gamification.
+Building "Dinner Without Debate" - a mobile app that helps couples decide what to eat using swipeable cards, shared preferences, and gamification.
 
-**Last Updated**: November 26, 2025
+**Last Updated**: December 8, 2025
 
 ## Tech Stack
 - **Framework**: React Native with Expo
@@ -278,29 +278,38 @@ This phase represents a strategic pivot to build the app's killer premium featur
 
 ---
 
-## Phase 7: Premium Features (Monetization) 🔄 IN PROGRESS
+## Phase 7: Premium Features (Monetization) ✅ COMPLETED
 
-### 6.1 Trial System ✅
-- [x] Trial period setup (7 days)
-- [x] Premium status hook
-- [x] Shared premium between partners
-- [ ] **TODO**: Trial expiration handling
-- [ ] **TODO**: Trial countdown UI
+### 7.1 Trial System ✅
+- [x] 3-day trial period setup on user creation
+- [x] Premium status hook (`usePremiumStatus`) with full state tracking
+- [x] Shared premium between partners (automatic sync)
+- [x] Trial expiration detection and paywall redirect
+- [x] Trial countdown UI in Settings (shows days remaining)
+- [x] Trial vs Premium vs Expired states properly handled
 
-### 6.2 Paywall ✅
+### 7.2 Paywall ✅
 - [x] Paywall component with modern design
-- [x] Yearly and monthly subscription tiers
+- [x] Weekly ($4.99) and Lifetime ($24.99) subscription tiers
 - [x] Feature list display
-- [x] Navigation after selection
-- [ ] **TODO**: Integrate payment provider (RevenueCat/Stripe)
-- [ ] **TODO**: Actual purchase flow
-- [ ] **TODO**: Restore purchases
+- [x] RevenueCat integration complete
+- [x] Purchase flow working
+- [x] Restore purchases functionality
+- [x] Paywall accessible from Settings at any time
 
-### 6.3 Premium-Gated Features ✅
-- [x] Cookbook access gating
-- [ ] **TODO**: Unlimited hints for premium
-- [ ] **TODO**: Advanced filters
-- [ ] **TODO**: Custom food items
+### 7.3 Premium-Gated Features ✅
+- [x] Match History (Connect/History tab) - premium only
+- [x] Unlimited hints for premium users
+- [x] 2x XP multiplier for premium
+- [x] Premium badge display (👑)
+- [x] Exclusive level titles (Level 10+)
+
+### 7.4 Hint System (Trial vs Premium) ✅
+- [x] Trial users: 1 hint after onboarding
+- [x] Trial users: 3 hints per level up
+- [x] Trial users: Streak milestone hints (1-5)
+- [x] Premium users: Unlimited hints (no deduction)
+- [x] Premium users: Don't earn hints (already unlimited)
 
 ---
 
@@ -417,7 +426,7 @@ This section tracks important tasks that are not part of the core feature roadma
 3. **Partner connection system** with database sync and shared premium
 4. **Match celebration** with confetti, deep linking, and actions
 5. **Review/testimonial system** with social proof after 3 matches
-6. **Connection success flow** with empowering messages
+6. **Connection success flow** with empowering messages and notification permission
 7. **Surprise Me feature** with preference-based suggestions
 8. **XP and hints system** with Firestore integration
 9. **Theme system** with light/dark mode
@@ -431,11 +440,18 @@ This section tracks important tasks that are not part of the core feature roadma
 17. **Push Notification System** - Post-match follow-up notifications to reduce silent churn
 18. **Solo Mode** - Date Night Planner and Dinner Companion for users without partners
 19. **Complete Gamification System** - Levels, hints, streaks with premium integration
+20. **RevenueCat Integration** - Full payment system with iOS subscriptions
+21. **3-Day Trial System** - Automatic trial with expiration handling
+22. **Premium Sharing** - One purchase covers both partners
+23. **Smart Search** - Cookbook search by title, ingredients, or tags
+24. **Partner Connection Detection** - Real-time detection when partner connects (from any screen)
+25. **Dynamic Tab Names** - Connect tab changes to History when partnered
 
 ###  In Progress
-1. ~~**Unit Tests**~~ ✅ - Jest configured, 26 tests passing for level system (Step 1 of 3)
-2. ~~**Payment integration**~~ ✅ - RevenueCat SDK integrated with paywall UI (Step 2 of 3)
-3. **Success Tracking** - "Did you go?" response system (Step 3 of 3)
+1. ~~**Unit Tests**~~ ✅ - Jest configured, 26 tests passing for level system
+2. ~~**Payment integration**~~ ✅ - RevenueCat SDK integrated with paywall UI
+3. ~~**Trial System**~~ ✅ - 3-day trial with expiration and paywall redirect
+4. **TestFlight Testing** - Final testing before App Store submission
 
 ###  Current Development Plan (Pre-Design Handoff)
 **Goal:** Complete all critical coding tasks before designer returns with final UI assets.
@@ -462,11 +478,11 @@ This section tracks important tasks that are not part of the core feature roadma
 - Track real-world date success rates
 - **Status:** PENDING
 
-###  Next Priorities (After Design Handoff)
-1. **UI Polish** - Integrate new icons, splash screens, and screenshots from designer
-2. **Conduct thorough testing** on physical devices
-3. **Prepare all assets for app store submission** (descriptions, privacy policy, terms)
-4. **Add Smart Search** to cookbook for finding recipes by title/ingredients/tags
+###  Next Priorities
+1. **TestFlight Testing** - Complete testing on physical devices
+2. **App Store Submission** - Submit for review
+3. **Android Build** - Complete Google Play setup and build
+4. **Success Tracking** - "Did you go?" response system for measuring real-world impact
 
 ---
 
@@ -489,91 +505,65 @@ This section tracks important tasks that are not part of the core feature roadma
 
 ## 🔴 CRITICAL BUGS & FIXES (TestFlight Build 22+)
 
-These issues were discovered during real-world testing on November 26, 2025 and need to be addressed before App Store release.
+These issues were discovered during real-world testing and have been addressed.
 
-### BUG-001: Partner Connection Not Working ✅ FIXED (Build 22)
-**Problem:** Partner codes weren't connecting users. The code used UID substring as invite code but looked up by document ID.
-**Root Cause:** 
-1. Firestore rules only allowed users to write their own document
-2. Invite code generation had race condition causing new codes on each mount
-**Fix Applied:**
-- Updated Firestore rules to allow partner connection updates
-- Added `inviteCode` field stored in Firestore
-- Query by `inviteCode` field instead of document ID
-- Added loading state check before generating codes
+### BUG-001: Partner Connection Not Working ✅ FIXED
+**Fix Applied:** Updated Firestore rules, added `inviteCode` field, query by field instead of document ID.
 
-### BUG-002: Remove Partner Feature Missing 🔴 TODO
-**Problem:** No way for users to disconnect from a partner (breakups happen).
-**Location:** Settings screen
-**Requirements:**
-- [ ] Add "Remove Partner" button in Settings (only visible when connected)
-- [ ] Confirmation dialog: "Are you sure? This will disconnect you from [Partner Name]"
-- [ ] Clear `coupleId`, `partnerId`, `partnerName`, `connectedAt` from BOTH users
-- [ ] Reset UI to show "Not Connected" state
-- [ ] Consider: Should match history be preserved or cleared?
+### BUG-002: Remove Partner Feature ✅ FIXED
+**Fix Applied:** Added "Remove Partner" button in Settings with confirmation dialog.
 
-### BUG-003: Partners See Different Food Lists 🔴 TODO  
-**Problem:** Two connected partners see completely different randomized food lists, making matches unlikely (50+ swipes before a match).
-**Root Cause:** Each user gets an independently shuffled deck.
-**Proposed Solutions:**
-1. **Shared Seed Approach**: Use `coupleId` as random seed so both partners get same shuffle order
-2. **Daily Deck Approach**: Generate a "deck of the day" for each couple, stored in Firestore
-3. **Priority Queue**: Show foods that partner has already liked first (increases match probability)
-4. **Hybrid**: Combine approaches - shared base order + prioritize partner's likes
-**Requirements:**
-- [ ] Design and implement shared deck system
-- [ ] Ensure both partners see foods in similar order
-- [ ] Prioritize showing foods partner has already liked (if any)
-- [ ] Test match rate improvement
+### BUG-003: Partners See Different Food Lists ✅ FIXED
+**Fix Applied:** Implemented seeded shuffle using `coupleId` so both partners see same order.
 
-### BUG-004: Uber Eats Button Not Working 🔴 TODO
-**Problem:** "Order In" / Uber Eats button on match screen doesn't work.
-**Location:** `app/match.tsx`
-**Requirements:**
-- [ ] Debug deep link URL for Uber Eats
-- [ ] Test on physical iOS device (deep links don't work in simulator)
-- [ ] Add fallback to open Uber Eats in App Store if not installed
-- [ ] Consider adding DoorDash as alternative option
+### BUG-004: Uber Eats Button ✅ FIXED
+**Fix Applied:** Deep link working on physical devices.
 
 ### BUG-005: Match Notification Only Sent to One Partner 🔴 TODO
-**Problem:** When a match occurs, only the user who made the matching swipe gets notified. Partner doesn't know about the match.
-**Root Cause:** Match detection happens client-side, notification only sent locally.
-**Proposed Solution:**
-1. **Cloud Function Trigger**: When a match document is created in Firestore, trigger a Cloud Function
-2. **Notify Both Partners**: Cloud Function sends push notification to BOTH users in the couple
-3. **Handle App States**: Notification should work whether app is open, backgrounded, or closed
-**Requirements:**
-- [ ] Create Firestore trigger on `matches` collection
-- [ ] Look up both partner's push tokens from `users` collection
-- [ ] Send push notification to both partners
-- [ ] Include match details (food name) in notification
-- [ ] Handle case where one partner has app open (don't double-notify)
+**Problem:** When a match occurs, only the user who made the matching swipe gets notified.
+**Status:** Pending - requires Cloud Function trigger on matches collection.
 
-### BUG-006: Invite Code Regenerating on Each Visit 🔴 TODO (Partial Fix)
-**Problem:** Invite code changes every time user visits Connect screen.
-**Status:** Partial fix in Build 22 (added loading check), but may need further testing.
-**Requirements:**
-- [ ] Verify fix works in Build 23+
-- [ ] Ensure code persists across app restarts
-- [ ] Add visual indicator when code is loading vs. ready
+### BUG-006: Invite Code Regenerating ✅ FIXED
+**Fix Applied:** Added loading state check and persistence.
+
+---
+
+## Recent Fixes (December 8, 2025)
+
+### UI/UX Improvements
+- ✅ Date Night Planner now sends App Store link with invite code
+- ✅ Splash screen button positioned 20px above center (consistent across devices)
+- ✅ Partner connection detection works from ANY screen (not just Connect tab)
+- ✅ Connect tab dynamically changes to "History" when partnered
+- ✅ Settings screen has prominent "Upgrade to Premium" section
+- ✅ Trial status shows days remaining in Settings
+- ✅ Cookbook smart search by title, ingredients, or tags
+- ✅ Swipe game removed from solo mode (partner-only feature)
+- ✅ Onboarding images preloaded at app startup (no loading gap)
+
+### Premium/Trial System
+- ✅ 3-day trial starts on user creation
+- ✅ Trial expiration redirects to paywall
+- ✅ Premium sharing between partners (one purchase covers both)
+- ✅ Unlimited hints for premium users
+- ✅ Trial users: 1 hint after onboarding, 3 hints per level
+- ✅ Premium users: Don't earn hints (already unlimited)
 
 ---
 
 ## Next Steps (Immediate Priority)
 
 ### 🔴 Critical (Must Fix Before App Store)
-1. **BUG-003: Shared Food Deck** - Partners must see same foods to match reasonably
-2. **BUG-005: Match Notifications for Both Partners** - Both users need to know about matches
-3. **BUG-002: Remove Partner Feature** - Essential for real-world usage
-4. **BUG-004: Fix Uber Eats Deep Link** - Core feature not working
+1. **BUG-005: Match Notifications for Both Partners** - Both users need to know about matches
 
-### 🟡 Important (Should Fix)
-5. **BUG-006: Verify Invite Code Fix** - Confirm codes persist properly
-6. **Restore RevenueCat** - Re-enable payment system (see RESTORATION_GUIDE.md)
+### 🟡 Important (Should Do)
+2. **TestFlight Testing** - Complete testing on physical devices
+3. **App Store Submission** - Submit for review
+4. **Android Build** - Complete Google Play setup
 
-### 🟢 Nice to Have
-7. **Add Smart Search** - Cookbook search by title, ingredients, or tags
-8. **Prepare App Store Assets** - Icons, screenshots, marketing materials
+### 🟢 Nice to Have (V2)
+5. **Success Tracking** - "Did you go?" response system
+6. **AI Dinner Companion** - Insight Timer-style AI integration
 
 ---
 

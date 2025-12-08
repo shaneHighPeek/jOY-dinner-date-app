@@ -2,11 +2,15 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { FontAwesome } from '@expo/vector-icons';
 import { useTheme } from '@/theme/ThemeProvider';
+import { useUser } from '@/hooks/useUser';
 
 export default function TabLayout() {
   const theme = useTheme();
+  const { userData } = useUser();
   if (!theme) return null;
   const { colors } = theme;
+  
+  const hasPartner = !!userData?.coupleId;
 
   return (
     <Tabs
@@ -39,8 +43,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="connect"
         options={{
-          title: 'Connect',
-          tabBarIcon: ({ color }) => <FontAwesome size={28} name="users" color={color} />,
+          title: hasPartner ? 'History' : 'Connect',
+          tabBarIcon: ({ color }) => <FontAwesome size={28} name={hasPartner ? 'heart' : 'users'} color={color} />,
         }}
       />
       <Tabs.Screen

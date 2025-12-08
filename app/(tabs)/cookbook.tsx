@@ -1,9 +1,9 @@
-import { Text, View, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Text, View, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, TextInput } from 'react-native';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { Paywall } from '@/components/premium/Paywall';
 import { useTheme } from '@/theme/ThemeProvider';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useFocusEffect, router } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { getUserRecipes } from '@/services/recipeService';
@@ -48,6 +48,31 @@ const createStyles = (colors: Colors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+  },
+  searchInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    height: 44,
+    fontSize: 16,
+    color: colors.text,
+  },
+  clearButton: {
+    padding: 4,
+  },
   contentContainer: {
     flex: 1,
     paddingHorizontal: 8,
@@ -55,6 +80,17 @@ const createStyles = (colors: Colors) => StyleSheet.create({
   placeholderText: {
     fontSize: 16,
     color: colors.muted,
+  },
+  noResultsContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 40,
+  },
+  noResultsText: {
+    fontSize: 16,
+    color: colors.muted,
+    textAlign: 'center',
   },
 });
 
@@ -65,10 +101,32 @@ export default function CookbookScreen() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   if (!theme) return null;
   const { colors } = theme;
   const styles = createStyles(colors);
+
+  // Filter recipes based on search query
+  const filteredRecipes = useMemo(() => {
+    if (!searchQuery.trim()) return recipes;
+    
+    const query = searchQuery.toLowerCase().trim();
+    return recipes.filter(recipe => {
+      // Search by title
+      if (recipe.title.toLowerCase().includes(query)) return true;
+      
+      // Search by tags
+      if (recipe.tags?.some(tag => tag.toLowerCase().includes(query))) return true;
+      
+      // Search by ingredients
+      if (recipe.ingredients?.some(group => 
+        group.items?.some(item => item.toLowerCase().includes(query))
+      )) return true;
+      
+      return false;
+    });
+  }, [recipes, searchQuery]);
 
   const fetchRecipes = useCallback(async () => {
     if (!user) return;
@@ -108,9 +166,18 @@ export default function CookbookScreen() {
       return <Text style={styles.placeholderText}>Your saved recipes will appear here.</Text>;
     }
 
+    if (filteredRecipes.length === 0 && searchQuery.trim()) {
+      return (
+        <View style={styles.noResultsContainer}>
+          <Ionicons name="search-outline" size={48} color={colors.muted} />
+          <Text style={styles.noResultsText}>No recipes found for "{searchQuery}"</Text>
+        </View>
+      );
+    }
+
     return (
       <FlatList
-        data={recipes}
+        data={filteredRecipes}
         keyExtractor={(item) => item.id}
         numColumns={2}
         renderItem={({ item }) => <RecipeCard recipe={item} />}
@@ -134,6 +201,30 @@ export default function CookbookScreen() {
           <Ionicons name="add" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
+      
+      {/* Search Bar - only show if there are recipes */}
+      {recipes.length > 0 && (
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputWrapper}>
+            <Ionicons name="search" size={20} color={colors.muted} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search recipes, ingredients..."
+              placeholderTextColor={colors.muted}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity style={styles.clearButton} onPress={() => setSearchQuery('')}>
+                <Ionicons name="close-circle" size={20} color={colors.muted} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      )}
+      
       <View style={styles.contentContainer}>
         {renderContent()}
       </View>
