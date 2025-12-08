@@ -1,7 +1,8 @@
 import { Text, View, Pressable, StyleSheet, ActivityIndicator, useWindowDimensions, Image, ImageBackground } from 'react-native';
 import { useState } from 'react';
 import { signInAnonymously } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
 import { useTheme } from '@/theme/ThemeProvider';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
@@ -30,7 +31,7 @@ const createStyles = (colors: Colors, window: { width: number; height: number })
     alignItems: 'center',
     position: 'absolute',
     top: '50%',
-    transform: [{ translateY: -70 }], // Center vertically, then move up 20px (button is ~50px, so -50/2 - 20 = -45, but we want 20px above center so -70)
+    transform: [{ translateY: -63 }], // Center vertically, adjusted down 7px
   },
   logo: {
     width: 250,
@@ -79,6 +80,25 @@ export default function LoginScreen() {
       console.log('Attempting anonymous sign-in...');
       const result = await signInAnonymously(auth);
       console.log('Sign-in successful:', result.user.uid);
+      
+      // Create initial user document if it doesn't exist
+      const userRef = doc(db, 'users', result.user.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (!userDoc.exists()) {
+        // Calculate trial end date (3 days from now)
+        const trialEndDate = new Date();
+        trialEndDate.setDate(trialEndDate.getDate() + 3);
+        
+        await setDoc(userRef, {
+          createdAt: new Date().toISOString(),
+          isPremium: false,
+          isLifetime: false,
+          trialEndDate: trialEndDate,
+          onboardingComplete: false,
+        });
+        console.log('Created initial user document with trial');
+      }
     } catch (error: any) {
       console.error('Anonymous sign-in failed:', error);
       setError(error.message || 'Failed to sign in');

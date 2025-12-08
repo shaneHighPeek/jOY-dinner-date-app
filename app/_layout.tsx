@@ -3,7 +3,7 @@ import { ThemeProvider as NavThemeProvider, DarkTheme, DefaultTheme } from '@rea
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Alert } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -12,7 +12,7 @@ import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import { PremiumProvider } from '@/contexts/PremiumContext';
 import { useUser } from '@/hooks/useUser';
 import { calculateStreakUpdate, STREAK_REWARDS } from '@/utils/streakSystem';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export const unstable_settings = {
@@ -190,6 +190,79 @@ function TrialExpirationChecker() {
   return null;
 }
 
+// Listens for new matches and shows in-app alert
+function MatchListener() {
+  const { user } = useAuth();
+  const { userData } = useUser();
+  const router = useRouter();
+  const segments = useSegments();
+  const lastMatchIdRef = useRef<string | null>(null);
+  const isInitializedRef = useRef(false);
+
+  useEffect(() => {
+    // Only listen if user has a partner
+    if (!user || !userData?.coupleId) return;
+
+    // Don't show alerts if already on match screen
+    const isOnMatchScreen = segments.some(s => s === 'match');
+    
+    const matchesRef = collection(db, 'matches');
+    const q = query(
+      matchesRef,
+      where('coupleId', '==', userData.coupleId),
+      orderBy('timestamp', 'desc'),
+      limit(1)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (snapshot.empty) return;
+      
+      const latestMatch = snapshot.docs[0];
+      const matchData = latestMatch.data();
+      const matchId = latestMatch.id;
+
+      // Skip if this is the first load (initialization)
+      if (!isInitializedRef.current) {
+        lastMatchIdRef.current = matchId;
+        isInitializedRef.current = true;
+        return;
+      }
+
+      // Skip if we've already seen this match
+      if (matchId === lastMatchIdRef.current) return;
+      
+      // Skip if on match screen already
+      if (isOnMatchScreen) {
+        lastMatchIdRef.current = matchId;
+        return;
+      }
+
+      // New match detected!
+      lastMatchIdRef.current = matchId;
+      console.log('New match detected:', matchData.itemName);
+
+      // Show alert and navigate to match screen
+      Alert.alert(
+        "🎉 It's a Match!",
+        `You both want ${matchData.itemName}! Time to eat!`,
+        [
+          {
+            text: "Let's Go!",
+            onPress: () => router.push({ pathname: '/match', params: { itemName: matchData.itemName } }),
+          },
+        ],
+        { cancelable: false }
+      );
+    }, (error) => {
+      console.error('Match listener error:', error);
+    });
+
+    return () => unsubscribe();
+  }, [user, userData?.coupleId, segments]);
+
+  return null;
+}
+
 function RootNavigator() {
   const { isDarkMode } = useTheme() || {};
   const { user, onboardingComplete, loading } = useAuth();
@@ -235,6 +308,7 @@ function RootNavigator() {
       <PartnerConnectionDetector />
       <StreakChecker />
       <TrialExpirationChecker />
+      <MatchListener />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="welcome" />
         <Stack.Screen name="(tabs)" />

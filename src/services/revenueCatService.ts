@@ -35,10 +35,27 @@ export const initializeRevenueCat = async (userId: string): Promise<boolean> => 
 
 export const getOfferings = async (): Promise<PurchasesOfferings | null> => {
   try {
+    const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
+    if (!apiKey || apiKey.trim() === '') {
+      console.warn('⚠️ RevenueCat API key not configured, cannot get offerings');
+      return null;
+    }
+
     const offerings = await Purchases.getOfferings();
+    console.log('📦 RevenueCat offerings:', {
+      current: offerings.current?.identifier,
+      packages: offerings.current?.availablePackages?.map(p => ({
+        id: p.identifier,
+        type: p.packageType,
+        productId: p.product.identifier,
+        price: p.product.priceString,
+      })),
+    });
+    
     if (offerings.current !== null) {
       return offerings;
     }
+    console.warn('⚠️ No current offering available');
     return null;
   } catch (error) {
     console.error('❌ Failed to get offerings:', error);
@@ -50,10 +67,22 @@ export const purchasePackage = async (
   packageToPurchase: PurchasesPackage
 ): Promise<{ success: boolean; customerInfo?: CustomerInfo; error?: string }> => {
   try {
+    console.log('🛒 Starting purchase for package:', {
+      id: packageToPurchase.identifier,
+      type: packageToPurchase.packageType,
+      productId: packageToPurchase.product.identifier,
+      price: packageToPurchase.product.priceString,
+    });
+    
     const { customerInfo } = await Purchases.purchasePackage(packageToPurchase);
+    console.log('✅ Purchase successful!', {
+      activeEntitlements: Object.keys(customerInfo.entitlements.active),
+    });
     return { success: true, customerInfo };
   } catch (error: any) {
+    console.log('❌ Purchase error:', error);
     if (error.userCancelled) {
+      console.log('User cancelled purchase');
       return { success: false, error: 'User cancelled' };
     }
     return { success: false, error: error.message || 'Purchase failed' };
