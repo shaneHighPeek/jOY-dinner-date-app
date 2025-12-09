@@ -11,11 +11,9 @@ import { Paywall } from '@/components/premium/Paywall';
 import { Linking } from 'react-native';
 
 const EXAMPLE_URLS: { [key: string]: string } = {
-  'AllRecipes': 'https://www.allrecipes.com/recipes/',
   'Food Network': 'https://www.foodnetwork.com/recipes',
   'Bon Appétit': 'https://www.bonappetit.com/recipes',
   'NYT Cooking': 'https://cooking.nytimes.com/',
-  'Serious Eats': 'https://www.seriouseats.com/recipes',
   'Tasty': 'https://tasty.co/'
 };
 

@@ -118,11 +118,6 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const purchasePackage = async (pkg: any) => {
-    // CAPTURE partnerId AT THE START before any async operations
-    // This ensures we have it even if userData changes during purchase
-    const currentPartnerId = userData?.partnerId;
-    console.log('Purchase started. Current partnerId:', currentPartnerId);
-    
     try {
       const result = await RevenueCatService.purchasePackage(pkg);
       
@@ -140,9 +135,18 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
         setIsPremium(newPremium);
         setIsLifetime(newLifetime);
         
-        // Update current user's Firestore record
-        if (user) {
+        // Update current user's Firestore record AND share with partner
+        if (user && newPremium) {
           const userRef = doc(db, 'users', user.uid);
+          
+          // FETCH FRESH DATA FROM FIRESTORE - don't rely on React state
+          const freshUserDoc = await getDoc(userRef);
+          const freshUserData = freshUserDoc.data();
+          const partnerId = freshUserData?.partnerId;
+          
+          console.log('Fresh Firestore data - partnerId:', partnerId);
+          
+          // Update buyer's record
           await updateDoc(userRef, {
             isPremium: newPremium,
             isLifetime: newLifetime,
@@ -150,24 +154,30 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
           console.log('Updated buyer Firestore:', user.uid);
           
           // Share premium with partner if connected
-          // Use the partnerId we captured at the START of the function
-          if (newPremium && currentPartnerId) {
-            console.log('Sharing premium with partner:', currentPartnerId);
+          if (partnerId) {
+            console.log('Sharing premium with partner:', partnerId);
             try {
-              const partnerRef = doc(db, 'users', currentPartnerId);
+              const partnerRef = doc(db, 'users', partnerId);
               await updateDoc(partnerRef, {
                 isPremium: newPremium,
                 isLifetime: newLifetime,
                 premiumSharedBy: user.uid,
                 premiumSharedAt: new Date().toISOString(),
               });
-              console.log('SUCCESS: Premium shared with partner:', currentPartnerId);
+              console.log('SUCCESS: Premium shared with partner:', partnerId);
             } catch (partnerError) {
               console.error('FAILED to update partner:', partnerError);
             }
           } else {
-            console.log('No partner to share with. newPremium:', newPremium, 'partnerId:', currentPartnerId);
+            console.log('No partner connected - partnerId is:', partnerId);
           }
+        } else if (user) {
+          // Not premium, just update the record
+          const userRef = doc(db, 'users', user.uid);
+          await updateDoc(userRef, {
+            isPremium: newPremium,
+            isLifetime: newLifetime,
+          });
         }
       }
       
@@ -182,10 +192,6 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const restorePurchases = async () => {
-    // CAPTURE partnerId AT THE START
-    const currentPartnerId = userData?.partnerId;
-    console.log('Restore started. Current partnerId:', currentPartnerId);
-    
     try {
       const result = await RevenueCatService.restorePurchases();
       
@@ -203,9 +209,18 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
         setIsPremium(newPremium);
         setIsLifetime(newLifetime);
         
-        // Update current user's Firestore record
-        if (user) {
+        // Update current user's Firestore record AND share with partner
+        if (user && newPremium) {
           const userRef = doc(db, 'users', user.uid);
+          
+          // FETCH FRESH DATA FROM FIRESTORE - don't rely on React state
+          const freshUserDoc = await getDoc(userRef);
+          const freshUserData = freshUserDoc.data();
+          const partnerId = freshUserData?.partnerId;
+          
+          console.log('Fresh Firestore data - partnerId:', partnerId);
+          
+          // Update buyer's record
           await updateDoc(userRef, {
             isPremium: newPremium,
             isLifetime: newLifetime,
@@ -213,23 +228,30 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
           console.log('Updated buyer Firestore:', user.uid);
           
           // Share premium with partner if connected
-          if (newPremium && currentPartnerId) {
-            console.log('Sharing restored premium with partner:', currentPartnerId);
+          if (partnerId) {
+            console.log('Sharing restored premium with partner:', partnerId);
             try {
-              const partnerRef = doc(db, 'users', currentPartnerId);
+              const partnerRef = doc(db, 'users', partnerId);
               await updateDoc(partnerRef, {
                 isPremium: newPremium,
                 isLifetime: newLifetime,
                 premiumSharedBy: user.uid,
                 premiumSharedAt: new Date().toISOString(),
               });
-              console.log('SUCCESS: Restored premium shared with partner:', currentPartnerId);
+              console.log('SUCCESS: Restored premium shared with partner:', partnerId);
             } catch (partnerError) {
               console.error('FAILED to update partner:', partnerError);
             }
           } else {
-            console.log('No partner to share with. newPremium:', newPremium, 'partnerId:', currentPartnerId);
+            console.log('No partner connected - partnerId is:', partnerId);
           }
+        } else if (user) {
+          // Not premium, just update the record
+          const userRef = doc(db, 'users', user.uid);
+          await updateDoc(userRef, {
+            isPremium: newPremium,
+            isLifetime: newLifetime,
+          });
         }
       }
       
