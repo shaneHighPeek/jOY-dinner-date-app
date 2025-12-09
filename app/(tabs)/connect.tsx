@@ -402,12 +402,14 @@ const NotConnectedView = () => {
         connectedAt: serverTimestamp(),
         // Share premium membership if current user has it
         isPremium: userData?.isPremium || partnerData.isPremium || false,
+        isLifetime: userData?.isLifetime || partnerData.isLifetime || false,
         trialEndDate: userData?.trialEndDate || partnerData.trialEndDate || null,
       });
 
       // Also update current user with shared premium status
       batch.update(userRef, {
         isPremium: userData?.isPremium || partnerData.isPremium || false,
+        isLifetime: userData?.isLifetime || partnerData.isLifetime || false,
         trialEndDate: userData?.trialEndDate || partnerData.trialEndDate || null,
       });
 

@@ -43,8 +43,9 @@ export const usePremiumStatus = (): PremiumStatus => {
   
   // IMPORTANT: If user has no trialEndDate set, they should be treated as on trial
   // This handles legacy users who were created before trial logic was added
+  // BUT: If user has paid (isPremium), they are NOT on trial anymore
   const hasNoTrialDate = !userData.trialEndDate;
-  const isOnTrial = hasNoTrialDate || (trialEndDate ? trialEndDate > now : false);
+  const isOnTrial = !isPremium && (hasNoTrialDate || (trialEndDate ? trialEndDate > now : false));
   const trialExpired = !hasNoTrialDate && trialEndDate ? trialEndDate <= now : false;
   
   // Calculate days left in trial

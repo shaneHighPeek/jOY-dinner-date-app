@@ -6,7 +6,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, FadeInU
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/lib/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
 const createStyles = (colors: any) => StyleSheet.create({
   container: {
@@ -57,11 +57,22 @@ export default function ProgressScreen() {
       });
 
       try {
+        // SAFETY CHECK: Don't overwrite existing user data!
+        // This prevents wiping premium/partner data if user somehow ends up here again
+        const userDocRef = doc(db, 'users', user.uid);
+        const existingDoc = await getDoc(userDocRef);
+        
+        if (existingDoc.exists() && existingDoc.data()?.onboardingComplete === true) {
+          console.log('User already exists with completed onboarding, skipping profile creation');
+          router.replace('/play');
+          return;
+        }
+
         // Calculate trial end date (3 days from now)
         const trialEndDate = new Date();
         trialEndDate.setDate(trialEndDate.getDate() + 3);
 
-        await setDoc(doc(db, 'users', user.uid), {
+        await setDoc(userDocRef, {
           name,
           avatar,
           vibe,

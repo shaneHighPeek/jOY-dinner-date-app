@@ -321,7 +321,7 @@ export default function PlaySwipeScreen() {
           onPress={() => router.push('/hints-menu' as any)}
         >
           <Text style={styles.hintIcon}>💡</Text>
-          <Text style={styles.hintText}>{userData.isPremium === true ? '∞' : (userData.hints || 0)}</Text>
+          <Text style={styles.hintText}>{userData.isLifetime === true ? '∞' : (userData.hints || 0)}</Text>
         </TouchableOpacity>
       </View>
 

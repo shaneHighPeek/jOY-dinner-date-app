@@ -23,7 +23,7 @@ export default function ImportRecipeScreen() {
   const router = useRouter();
   const theme = useTheme()!;
   const { user } = useAuth();
-  const { isPremium } = usePremiumStatus();
+  const { hasFullAccess } = usePremiumStatus();
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +74,7 @@ export default function ImportRecipeScreen() {
     }
   };
 
-  if (!isPremium) {
+  if (!hasFullAccess) {
     return <Paywall />;
   }
 

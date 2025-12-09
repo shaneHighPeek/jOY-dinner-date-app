@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface AuthContextType {
@@ -19,13 +20,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
-  // Check onboarding status from AsyncStorage
+  // Check onboarding status from AsyncStorage, with Firestore fallback
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       try {
+        // First check AsyncStorage (fast, local)
         const value = await AsyncStorage.getItem('@onboardingComplete');
         if (value !== null) {
           setOnboardingCompleteState(true);
+          setOnboardingChecked(true);
+          return;
+        }
+        
+        // If not in AsyncStorage but we have a user, check Firestore as fallback
+        // This handles cases where AsyncStorage was cleared but user data exists
+        if (user) {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists() && userDoc.data()?.onboardingComplete === true) {
+            console.log('Onboarding status recovered from Firestore');
+            // Restore to AsyncStorage for future fast access
+            await AsyncStorage.setItem('@onboardingComplete', 'true');
+            setOnboardingCompleteState(true);
+          }
         }
       } catch (e) {
         console.error('Failed to fetch onboarding status.', e);
@@ -34,8 +50,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    checkOnboardingStatus();
-  }, []);
+    // Only run after auth is checked so we have the user
+    if (authChecked) {
+      checkOnboardingStatus();
+    }
+  }, [user, authChecked]);
 
   // Listen to Firebase auth state
   useEffect(() => {
