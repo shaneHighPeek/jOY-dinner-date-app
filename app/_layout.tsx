@@ -190,6 +190,37 @@ function TrialExpirationChecker() {
   return null;
 }
 
+// Listens for premium being shared by partner and shows alert
+function PremiumSharedListener() {
+  const { user } = useAuth();
+  const { userData } = useUser();
+  const previousPremiumRef = useRef<boolean | undefined>(undefined);
+  const hasShownAlertRef = useRef(false);
+
+  useEffect(() => {
+    if (!user || !userData) return;
+
+    const wasPremium = previousPremiumRef.current;
+    const isPremiumNow = userData.isPremium === true;
+    const wasSharedByPartner = userData.premiumSharedBy && userData.premiumSharedBy !== user.uid;
+
+    // Detect transition from non-premium to premium via partner sharing
+    if (wasPremium === false && isPremiumNow && wasSharedByPartner && !hasShownAlertRef.current) {
+      hasShownAlertRef.current = true;
+      Alert.alert(
+        '🎉 Great News!',
+        'Your partner just upgraded to Premium! You now have full access to all features.',
+        [{ text: 'Awesome!', style: 'default' }]
+      );
+    }
+
+    // Update ref for next comparison
+    previousPremiumRef.current = isPremiumNow;
+  }, [user, userData?.isPremium, userData?.premiumSharedBy]);
+
+  return null;
+}
+
 // Listens for new matches and shows in-app alert
 function MatchListener() {
   const { user } = useAuth();
@@ -308,6 +339,7 @@ function RootNavigator() {
       <PartnerConnectionDetector />
       <StreakChecker />
       <TrialExpirationChecker />
+      <PremiumSharedListener />
       <MatchListener />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="welcome" />

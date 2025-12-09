@@ -3,7 +3,7 @@ import * as RevenueCatService from '../services/revenueCatService';
 import { CustomerInfo } from 'react-native-purchases';
 import { useAuth } from '../hooks/useAuth';
 import { useUser } from '../hooks/useUser';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 interface PremiumContextType {
@@ -87,8 +87,28 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
         RevenueCatService.getCustomerInfo(),
       ]);
       
-      setIsPremium(premium);
-      setIsLifetime(lifetime);
+      // IMPORTANT: Check BOTH RevenueCat AND Firestore
+      // Partner may have premium shared via Firestore but not in RevenueCat
+      // Get fresh Firestore data to check for shared premium
+      let finalPremium = premium;
+      let finalLifetime = lifetime;
+      
+      if (user && !premium) {
+        // RevenueCat says not premium - check if partner shared it via Firestore
+        const userRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+        const firestoreData = userDoc.data();
+        
+        if (firestoreData?.isPremium === true && firestoreData?.premiumSharedBy) {
+          // Premium was shared by partner - use Firestore values
+          console.log('Premium shared by partner, using Firestore status');
+          finalPremium = true;
+          finalLifetime = firestoreData?.isLifetime === true;
+        }
+      }
+      
+      setIsPremium(finalPremium);
+      setIsLifetime(finalLifetime);
       setCustomerInfo(info);
     } catch (error) {
       console.error('Failed to check premium status:', error);
@@ -120,16 +140,32 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
             isPremium: newPremium,
             isLifetime: newLifetime,
           });
-        }
-        
-        // Share premium with partner if connected
-        if (newPremium && userData?.partnerId) {
-          await shareWithPartner(newPremium, newLifetime);
+          
+          // Get FRESH user data to ensure we have current partnerId
+          // (userData from hook might be stale)
+          const freshUserDoc = await getDoc(userRef);
+          const freshUserData = freshUserDoc.data();
+          
+          // Share premium with partner if connected
+          if (newPremium && freshUserData?.partnerId) {
+            console.log('Sharing premium with partner:', freshUserData.partnerId);
+            const partnerRef = doc(db, 'users', freshUserData.partnerId);
+            await updateDoc(partnerRef, {
+              isPremium: newPremium,
+              isLifetime: newLifetime,
+              premiumSharedBy: user.uid,
+              premiumSharedAt: new Date().toISOString(),
+            });
+            console.log('Premium shared with partner successfully');
+          } else {
+            console.log('No partner to share premium with');
+          }
         }
       }
       
       return result;
     } catch (error: any) {
+      console.error('Purchase error:', error);
       return {
         success: false,
         error: error.message || 'Purchase failed',
@@ -160,16 +196,29 @@ export const PremiumProvider: React.FC<{ children: ReactNode }> = ({ children })
             isPremium: newPremium,
             isLifetime: newLifetime,
           });
-        }
-        
-        // Share premium with partner if connected
-        if (newPremium && userData?.partnerId) {
-          await shareWithPartner(newPremium, newLifetime);
+          
+          // Get FRESH user data to ensure we have current partnerId
+          const freshUserDoc = await getDoc(userRef);
+          const freshUserData = freshUserDoc.data();
+          
+          // Share premium with partner if connected
+          if (newPremium && freshUserData?.partnerId) {
+            console.log('Sharing restored premium with partner:', freshUserData.partnerId);
+            const partnerRef = doc(db, 'users', freshUserData.partnerId);
+            await updateDoc(partnerRef, {
+              isPremium: newPremium,
+              isLifetime: newLifetime,
+              premiumSharedBy: user.uid,
+              premiumSharedAt: new Date().toISOString(),
+            });
+            console.log('Restored premium shared with partner successfully');
+          }
         }
       }
       
       return result;
     } catch (error: any) {
+      console.error('Restore error:', error);
       return {
         success: false,
         error: error.message || 'Restore failed',
