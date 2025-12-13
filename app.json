@@ -24,9 +24,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.highpeekpro.dinnerwithoutdebate",
-      "permissions": [
-        "android.permission.RECEIVE_BOOT_COMPLETED"
-      ]
+      "permissions": []
     },
     "web": {
       "output": "static",
@@ -45,7 +43,7 @@
         {
           "image": "./assets/images/splash.png",
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#1A1A1A",
           "dark": {
             "backgroundColor": "#1A1A1A"
           }

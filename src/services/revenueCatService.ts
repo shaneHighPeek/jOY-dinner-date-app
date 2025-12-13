@@ -37,26 +37,10 @@ export const getOfferings = async (): Promise<PurchasesOfferings | null> => {
   try {
     const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
     if (!apiKey || apiKey.trim() === '') {
-      console.warn('⚠️ RevenueCat API key not configured, cannot get offerings');
       return null;
     }
-
     const offerings = await Purchases.getOfferings();
-    console.log('📦 RevenueCat offerings:', {
-      current: offerings.current?.identifier,
-      packages: offerings.current?.availablePackages?.map(p => ({
-        id: p.identifier,
-        type: p.packageType,
-        productId: p.product.identifier,
-        price: p.product.priceString,
-      })),
-    });
-    
-    if (offerings.current !== null) {
-      return offerings;
-    }
-    console.warn('⚠️ No current offering available');
-    return null;
+    return offerings;
   } catch (error) {
     console.error('❌ Failed to get offerings:', error);
     return null;
@@ -75,9 +59,7 @@ export const purchasePackage = async (
     });
     
     const { customerInfo } = await Purchases.purchasePackage(packageToPurchase);
-    console.log('✅ Purchase successful!', {
-      activeEntitlements: Object.keys(customerInfo.entitlements.active),
-    });
+    console.log('✅ Purchase successful!');
     return { success: true, customerInfo };
   } catch (error: any) {
     console.log('❌ Purchase error:', error);
@@ -108,8 +90,10 @@ export const checkPremiumStatus = async (): Promise<boolean> => {
     if (!apiKey || apiKey.trim() === '') {
       return false;
     }
+
     const customerInfo = await Purchases.getCustomerInfo();
-    return customerInfo.entitlements.active['premium'] !== undefined;
+    const premiumEntitlement = customerInfo.entitlements.active['premium'];
+    return !!premiumEntitlement;
   } catch (error) {
     console.error('❌ Failed to check premium status:', error);
     return false;
@@ -118,10 +102,6 @@ export const checkPremiumStatus = async (): Promise<boolean> => {
 
 export const getCustomerInfo = async (): Promise<CustomerInfo | null> => {
   try {
-    const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
-    if (!apiKey || apiKey.trim() === '') {
-      return null;
-    }
     return await Purchases.getCustomerInfo();
   } catch (error) {
     console.error('❌ Failed to get customer info:', error);
